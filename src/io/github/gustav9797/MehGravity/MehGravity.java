@@ -13,51 +13,48 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
-public final class MehGravity extends JavaPlugin implements Listener {
-	int blockLimit = 2000; // Should be config option
+public final class MehGravity extends JavaPlugin implements Listener 
+{
+	static int blockLimit = 2000; // Should be config option
 
-	public void onEnable() {
+	public void onEnable() 
+	{
 		getServer().getPluginManager().registerEvents(this, this);
 	}
 
-	public void onDisable() {
+	public void onDisable() 
+	{
 		getLogger().info("MehGravity disabled.");
 	}
 	
 	@EventHandler
-	public void onBlockBreak(BlockBreakEvent event) {
-		event.setCancelled(true);
-		event.getBlock().setType(Material.AIR);
-		for(int i = 0; i < 6; i++)
-		{
-			Block currentBlock = event.getPlayer().getWorld().getBlockAt(
-					event.getBlock().getX() + adjacentBlocks[i].getX(), 
-					event.getBlock().getY() + adjacentBlocks[i].getY(), 
-					event.getBlock().getZ() + adjacentBlocks[i].getZ());
-			if(currentBlock.getType().isSolid())
-			{
-				BeginGravity(currentBlock, event.getPlayer());
-				//event.getPlayer().sendMessage("Checking at:" + currentBlock.getX() + " . " + currentBlock.getY() + " . " + currentBlock.getZ());
-			}
-		}
+	public void onBlockBreak(BlockBreakEvent event) 
+	{
+		new GravityBlockBreak(this, event.getBlock(), event.getPlayer()).runTask(this);
 	}
 
 	@EventHandler
-	public void onBlockPlace(BlockPlaceEvent event) {
+	public void onBlockPlace(BlockPlaceEvent event) 
+	{
 		BeginGravity(event.getBlockPlaced(), event.getPlayer());
 	}
 
-	Location[] adjacentBlocks = { new Location(1, 0, 0),
+	static Location[] adjacentBlocks = { new Location(1, 0, 0),
 			new Location(-1, 0, 0), new Location(0, 1, 0),
 			new Location(0, -1, 0), new Location(0, 0, 1),
 			new Location(0, 0, -1) };
 	
-	public void BeginGravity(Block startBlock, Player player) {
+	public void BeginGravity(Block startBlock, Player player)
+	{
 		// Check if we can find bedrock, saves lots of time..
 		Location startLocation = new Location(startBlock.getX(), startBlock.getY(), startBlock.getZ());
 		for (int y = startBlock.getY(); y > -10; y--) 
@@ -66,11 +63,9 @@ public final class MehGravity extends JavaPlugin implements Listener {
 			if (currentBlock.getType() != Material.AIR) 
 			{
 				if (currentBlock.getType() == Material.BEDROCK) 
-				{
-					//event.getPlayer().sendMessage("Found bedrock");
 					return;
-				}
-			} else
+			} 
+			else
 				break;
 		}
 		//event.getPlayer().sendMessage("Didn't find bedrock");
@@ -166,8 +161,10 @@ public final class MehGravity extends JavaPlugin implements Listener {
 				}
 			}
 		}
+		
+		//Move them down
 		//event.getPlayer().sendMessage("Possible blocks to move down:" + blocksWeCanMove);
-		i = yLevels.iterator();
+		/*i = yLevels.iterator();
 		while (i.hasNext()) 
 		{
 			int iblabla = (int)i.next();
@@ -189,6 +186,60 @@ public final class MehGravity extends JavaPlugin implements Listener {
 			//else
 				//event.getPlayer().sendMessage("Failed");
 			i.remove();
+		}*/
+		
+		i = yLevels.iterator();
+		while (i.hasNext()) 
+		{
+			int iblabla = (int)i.next();
+			//event.getPlayer().sendMessage("Trying to get Y level of " + iblabla);
+			if (blockList.containsKey(iblabla)) 
+			{
+				Iterator it = blockList.get(iblabla).entrySet().iterator();
+				while (it.hasNext()) 
+				{
+					Map.Entry pair = (Map.Entry) it.next();
+					Block ToMoveDown = ((Block) pair.getValue()).getState().getBlock();
+					//Block toSet = world.getBlockAt(ToMoveDown.getLocation().getBlockX(), ToMoveDown.getLocation().getBlockY() - blocksWeCanMove, ToMoveDown.getLocation().getBlockZ());
+					//toSet.setType(ToMoveDown.getType());
+					//toSet.setData(ToMoveDown.getData());
+					
+					world.spawnFallingBlock(ToMoveDown.getLocation(), ToMoveDown.getType(), ToMoveDown.getData());
+					world.getBlockAt(ToMoveDown.getLocation()).setType(Material.AIR);
+					it.remove();
+				}
+			}
+			//else
+				//event.getPlayer().sendMessage("Failed");
+			i.remove();
+		}
+	}
+}
+
+class GravityBlockBreak extends BukkitRunnable
+{
+	Block startBlock;
+	Player player;
+	MehGravity plugin;
+	public GravityBlockBreak(MehGravity plugin, Block startBlock, Player player)
+	{
+		this.startBlock = startBlock;
+		this.player = player;
+		this.plugin = plugin;
+	}
+	
+	@Override
+	public void run() 
+	{
+		for(int i = 0; i < 6; i++)
+		{
+			Block currentBlock = player.getWorld().getBlockAt(
+					startBlock.getX() + plugin.adjacentBlocks[i].getX(), 
+					startBlock.getY() + plugin.adjacentBlocks[i].getY(), 
+					startBlock.getZ() + plugin.adjacentBlocks[i].getZ());
+			
+			if(currentBlock.getType().isSolid())
+				plugin.BeginGravity(currentBlock, player);
 		}
 	}
 }
