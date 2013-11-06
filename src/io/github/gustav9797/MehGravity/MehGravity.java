@@ -270,6 +270,16 @@ public final class MehGravity extends JavaPlugin implements Listener
 				{
 					minima.put(coord, Math.min(min, block.getY()));
 				}
+				/*ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
+				Integer min = minima.get(coord);
+				if(min == null) 
+				{	
+					minima.put(coord, block.getY());
+				} 
+				else 
+				{
+					minima.put(coord, Math.min(min, block.getY()));
+				}*/
 			}
 		}
 		
