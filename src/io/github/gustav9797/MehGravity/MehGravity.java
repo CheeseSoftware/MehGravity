@@ -243,7 +243,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 			while (xziterator.hasNext()) 
 			{
 				Block block = xziterator.next().getValue();
-				ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
+				/*ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
 				if(!minima.containsKey(coord))
 				{
 					int y = block.getY();
@@ -251,35 +251,40 @@ public final class MehGravity extends JavaPlugin implements Listener
 						continue;
 					while(yLevels.contains(y))
 					{
-						if(world.getBlockAt(coord.x, y - 1, coord.z).getType() == Material.AIR && world.getBlockAt(coord.x, y, coord.z).getType() != Material.AIR)
+						if(world.getBlockAt(coord.x, y - 1, coord.z).getType() == Material.AIR)
 						{
 							if(!minima.containsKey(coord))
 								minima.put(coord, new Vector<Integer>());
 							minima.get(coord).add(y);
-							getServer().getPlayer("gustav9797").sendMessage("Found a block with air under: " + coord.x + " - " + y + " - " + coord.z);
 						}
 						y--;
 					}
+				}*/
+				ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
+				Integer min = minima.get(coord);
+				if(min == null) 
+				{	
+					minima.put(coord, block.getY());
+				} 
+				else 
+				{
+					minima.put(coord, Math.min(min, block.getY()));
 				}
 			}
 		}
 		
 		for(Map.Entry<ColumnCoord, Vector<Integer>> entry : minima.entrySet()) 
 		{
-			for(Integer currentBlockY : entry.getValue())
-			{
-				ColumnCoord coord = entry.getKey();
+			ColumnCoord coord = entry.getKey();
+			int currentBlockY = entry.getValue();
 
-				for(int y = currentBlockY - 1; y > -10; y--)
+			for(int y = currentBlockY - 1; y > -10; y--)
+			{
+				if(world.getBlockAt(coord.x, y, coord.z).getType().isSolid())
 				{
-					if(world.getBlockAt(coord.x, y, coord.z).getType().isSolid())
-					{
-						if(yLevels.contains(y) && blockList.get(y).containsKey(new Location(coord.x, y, coord.z)))
-							break;
-						if(currentBlockY - y - 1 < minDistance)
-							minDistance = currentBlockY - y - 1;
-						break;
-					}
+					if(currentBlockY - y - 1 < minDistance)
+						minDistance = currentBlockY - y - 1;
+					break;
 				}
 			}
 
