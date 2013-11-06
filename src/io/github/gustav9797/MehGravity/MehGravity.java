@@ -232,7 +232,8 @@ public final class MehGravity extends JavaPlugin implements Listener
 
 	public int findMovingSpaceDown(Vector<Integer> yLevels, HashMap<Integer, HashMap<Location, Block>> blockList, World world) 
 	{
-		Map<ColumnCoord, Vector<Integer>> minima = new HashMap<ColumnCoord, Vector<Integer>>();
+		Map<ColumnCoord, Integer> minima = new HashMap<ColumnCoord, Integer>();
+		Map<ColumnCoord, Integer> maxima = new HashMap<ColumnCoord, Integer>();
 		
 		int minDistance = Integer.MAX_VALUE;
 		
@@ -243,47 +244,23 @@ public final class MehGravity extends JavaPlugin implements Listener
 			while (xziterator.hasNext()) 
 			{
 				Block block = xziterator.next().getValue();
-				/*ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
-				if(!minima.containsKey(coord))
-				{
-					int y = block.getY();
-					if(yLevels.contains(y + 1) && blockList.get(y + 1).containsKey(new Location(block.getX(), block.getY(), block.getZ())))
-						continue;
-					while(yLevels.contains(y))
-					{
-						if(world.getBlockAt(coord.x, y - 1, coord.z).getType() == Material.AIR)
-						{
-							if(!minima.containsKey(coord))
-								minima.put(coord, new Vector<Integer>());
-							minima.get(coord).add(y);
-						}
-						y--;
-					}
-				}*/
 				ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
 				Integer min = minima.get(coord);
+				Integer max = maxima.get(coord);
 				if(min == null) 
 				{	
 					minima.put(coord, block.getY());
+					maxima.put(coord, block.getY());
 				} 
 				else 
 				{
 					minima.put(coord, Math.min(min, block.getY()));
+					maxima.put(coord, Math.max(max, block.getY()));
 				}
-				/*ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
-				Integer min = minima.get(coord);
-				if(min == null) 
-				{	
-					minima.put(coord, block.getY());
-				} 
-				else 
-				{
-					minima.put(coord, Math.min(min, block.getY()));
-				}*/
 			}
 		}
 		
-		for(Map.Entry<ColumnCoord, Vector<Integer>> entry : minima.entrySet()) 
+		/*for(Map.Entry<ColumnCoord, Integer> entry : minima.entrySet()) 
 		{
 			ColumnCoord coord = entry.getKey();
 			int currentBlockY = entry.getValue();
@@ -298,7 +275,38 @@ public final class MehGravity extends JavaPlugin implements Listener
 				}
 			}
 
-		}
+		}*/
+        for(Map.Entry<ColumnCoord, Integer> entry : minima.entrySet()) 
+        {
+                ColumnCoord coord = entry.getKey();
+                int lowestMovedY = entry.getValue();
+                int highestMovedY = entry.getValue();
+ 
+                int searchBottom = Math.max(lowestMovedY - 1, 0);
+                // Search down and find the shortest span
+                for(int y = highestMovedY - 1; y >= searchBottom; y--) 
+                {
+                        // Not entirely intuitive, bottom is above top, as it represents either the bottom and top of the blocks they are connected to.
+                        // Find bottom edge, a.k.a air block.
+                        Block bottom = world.getBlockAt(coord.x, y, coord.z);
+                        if(bottom.getType() != Material.AIR)
+                                continue;
+ 
+                        // Progress further, find first non-air block (top edge)
+                        for(; y >= 0; y--) 
+                        {
+                                Block top = world.getBlockAt(coord.x, y, coord.z);
+                                if(top.getType() == Material.AIR)
+                                        continue;
+ 
+                                // Check if the block is part of the moving mass. If so, just continue with the outer loop (break out of this one)
+                                if(blockList.containsKey(top.getY()) && blockList.get(top.getY()).containsKey(new Location(top.getX(),top.getY(),top.getZ())))
+                                        break;
+ 
+                                minDistance = Math.min(bottom.getY() - top.getY(), minDistance);
+                        }
+                }
+        }
 		return minDistance;
 	}
 }
