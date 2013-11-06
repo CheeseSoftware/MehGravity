@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Vector;
@@ -15,6 +16,9 @@ import java.util.logging.Level;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Chest;
+import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -22,6 +26,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -117,7 +123,6 @@ public final class MehGravity extends JavaPlugin implements Listener
 			else
 				break;
 		}
-		//event.getPlayer().sendMessage("Didn't find bedrock");
 
 		// Now that we haven't found bedrock, lets store what blocks it's
 		// connected to(within the set blocklimit!)
@@ -148,23 +153,15 @@ public final class MehGravity extends JavaPlugin implements Listener
 					blockList.get(currentBlock.getY()).put(currentLocation, currentBlock);
 					blocksToCheck.add(currentLocation);
 					totalBlocks++;
-					/*event.getPlayer().sendMessage(
-							"Added: block X:" + currentLocation.getX() + " Y:"
-									+ currentLocation.getY() + " Z:"
-									+ currentLocation.getZ() + " material:"
-									+ currentBlock.getType());*/
 				}
 			}
 
-			if (totalBlocks >= blockLimit) {
-				//event.getPlayer().sendMessage("Hit the max amount of blocks, returning!");
+			if (totalBlocks >= blockLimit)
 				return;
-			}
 		}
-		//event.getPlayer().sendMessage("We have found a total of " + totalBlocks + " blocks!");
-
+		
 		// Now we know that we have a massive floating thing that should drop
-		// down, so lets move it down!
+		// down, lets store it in an array of collections of blocks sorted by y-layer.
 		Vector<Integer> yLevels = new Vector<Integer>();
 		Iterator<Entry<Integer, HashMap<Location, Block>>> yit = blockList.entrySet().iterator();
 		while (yit.hasNext()) 
@@ -176,83 +173,123 @@ public final class MehGravity extends JavaPlugin implements Listener
 		Collections.sort(yLevels);
 		
 		//Measure how far down we can move it
-		player.sendMessage("Blocklist has " + blockList.size() + " y-layers");
-		Iterator<Integer> i = yLevels.iterator();
-		int blocksWeCanMove = 0;
-		first:
-		while (i.hasNext()) 
-		{
-			int currentY = (int)i.next();
-			if (blockList.containsKey(currentY)) 
-			{
-				player.sendMessage("y-layer " + currentY + " has " + blockList.get(currentY).size() + "blocks");
-				Iterator<Entry<Location, Block>> it = blockList.get(currentY).entrySet().iterator();
-				while (it.hasNext()) 
-				{
-					Entry<Location, Block> pair = it.next();
-					Block toCheck = (Block)pair.getValue();
-					Location toCheckLocation = new Location(toCheck.getX(), toCheck.getY(), toCheck.getZ());
-					int layer = currentY - 1;
-					
-					//Go to the layer which has no block under it
-					while (blockList.containsKey(layer) && blockList.get(layer).size() > 0) 
-					{
-						if(blockList.get(layer).containsValue(toCheckLocation))
-						{
-							blocksWeCanMove = 0;
-							break first;
-						}
-						layer--;
-					}
-					layer += 1;
-					player.sendMessage("Layer which has no block under: " + layer);
-					
-					//Check how many blocks down we can move from that block without hitting a solid block
-					int currentBlocksWeCanMove = 0;
-					for(int y = layer; y > -10; y--)
-					{
-						if(world.getBlockAt(toCheck.getX(), y, toCheck.getZ()).getType().isSolid() && (!blockList.containsKey(y) || !blockList.get(y).containsValue(world.getBlockAt(toCheck.getX(), y, toCheck.getZ()))))
-						{
-							if(currentBlocksWeCanMove < blocksWeCanMove || blocksWeCanMove == 0)
-								blocksWeCanMove = currentBlocksWeCanMove;
-							player.sendMessage("Blocks that it can fall: " + blocksWeCanMove);
-							if(blocksWeCanMove <= 0)
-								return;
-							break first;
-						}
-						else
-							currentBlocksWeCanMove++;
-					}
-					
-				}
-			}
-		}
+		int blocksWeCanMove = findMovingSpaceDown(yLevels, blockList, world);
 		
 		//Move them down
-		//event.getPlayer().sendMessage("Possible blocks to move down:" + blocksWeCanMove);
-		i = yLevels.iterator();
+		Iterator<Integer> i = yLevels.iterator();
 		while (i.hasNext()) 
 		{
-			int iblabla = (int)i.next();
-			//event.getPlayer().sendMessage("Trying to get Y level of " + iblabla);
-			if (blockList.containsKey(iblabla)) 
+			int currentLayerY = (int)i.next();
+			if (blockList.containsKey(currentLayerY)) 
 			{
-				Iterator<Entry<Location, Block>> it = blockList.get(iblabla).entrySet().iterator();
+				player.sendMessage("size: " + blockList.get(currentLayerY).size());
+				Iterator<Entry<Location, Block>> it = blockList.get(currentLayerY).entrySet().iterator();
 				while (it.hasNext()) 
 				{
-					Entry<Location, Block> pair = it.next();
-					Block ToMoveDown = ((Block) pair.getValue()).getState().getBlock();
-					Block toSet = world.getBlockAt(ToMoveDown.getLocation().getBlockX(), ToMoveDown.getLocation().getBlockY() - blocksWeCanMove, ToMoveDown.getLocation().getBlockZ());
-					toSet.setType(ToMoveDown.getType());
-					//toSet.setData(ToMoveDown.getData());  deprecated >.<, must fix
-					world.getBlockAt(ToMoveDown.getLocation()).setType(Material.AIR);
+					Entry<Location, Block> pair = it.next();		
+					Block from = ((Block) pair.getValue());
+					BlockState fromState = from.getState();					
+					Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - blocksWeCanMove, from.getLocation().getBlockZ());
+					BlockState toState = to.getState();				
+					to.setType(from.getType());
+					player.sendMessage(fromState.getBlock().getType().toString());
+					
+					switch(from.getType())
+					{
+						case CHEST:
+						{
+							Chest fromChest = (Chest) fromState;
+							Chest toChest = (Chest) to.getState();
+							Inventory fromInventory = fromChest.getBlockInventory();
+							Inventory toInventory = toChest.getBlockInventory();
+							
+							toInventory.setContents(fromChest.getBlockInventory().getContents());
+							fromInventory.clear();
+							break;
+						}
+						/*case WALL_SIGN: BUGGING ATM
+						{
+							player.sendMessage("wall SIGN!!!");
+							Sign fromSign = (Sign) fromState;
+							Sign toSign = (Sign) to.getState();
+							String[] tempSign = toSign.getLines();
+							tempSign = fromSign.getLines();
+							//toSign.setData(fromSign.getData());
+							to.setType(Material.SIGN);
+							break;
+						}*/
+						default:
+							break;
+					}
+					//toSet.setData((byte)ToMoveDownState.getData());
+					world.getBlockAt(from.getLocation()).setType(Material.AIR);
 					it.remove();
 				}
 			}
-			//else
-				//event.getPlayer().sendMessage("Failed");
 			i.remove();
 		}
+	}
+
+	public int findMovingSpaceDown(Vector<Integer> yLevels, HashMap<Integer, HashMap<Location, Block>> blockList, World world) 
+	{
+		Map<ColumnCoord, Vector<Integer>> minima = new HashMap<ColumnCoord, Vector<Integer>>();
+		
+		int minDistance = Integer.MAX_VALUE;
+		
+		Iterator<Integer> yiterator = yLevels.iterator();
+		while (yiterator.hasNext()) 
+		{
+			Iterator<Entry<Location, Block>> xziterator = blockList.get(yiterator.next()).entrySet().iterator();
+			while (xziterator.hasNext()) 
+			{
+				Block block = xziterator.next().getValue();
+				ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
+				if(!minima.containsKey(coord))
+				{
+					int y = block.getY();
+					if(yLevels.contains(y + 1) && blockList.get(y + 1).containsKey(new Location(block.getX(), block.getY(), block.getZ())))
+						continue;
+					while(yLevels.contains(y))
+					{
+						if(world.getBlockAt(coord.x, y - 1, coord.z).getType() == Material.AIR)
+						{
+							if(!minima.containsKey(coord))
+								minima.put(coord, new Vector<Integer>());
+							minima.get(coord).add(y);
+						}
+						y--;
+					}
+				}
+				/*ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
+				Integer min = minima.get(coord);
+				if(min == null) 
+				{	
+					minima.put(coord, block.getY());
+				} 
+				else 
+				{
+					minima.put(coord, Math.min(min, block.getY()));
+				}*/
+			}
+		}
+		
+		for(Map.Entry<ColumnCoord, Vector<Integer>> entry : minima.entrySet()) 
+		{
+			ColumnCoord coord = entry.getKey();
+			int currentBlockY = entry.getValue();
+
+			for(int y = currentBlockY - 1; y > -10; y--)
+			{
+				if(world.getBlockAt(coord.x, y, coord.z).getType().isSolid())
+				{
+					if(currentBlockY - y - 1 < minDistance)
+						minDistance = currentBlockY - y - 1;
+					break;
+				}
+			}
+
+		}
+		return minDistance;
 	}
 }
 
@@ -282,4 +319,35 @@ class GravityBlockBreak extends BukkitRunnable
 				plugin.BeginGravity(currentBlock, player);
 		}
 	}
+}
+
+//// Utility
+class ColumnCoord 
+{
+
+    public final int x;
+    public final int z;
+
+    public ColumnCoord(int x, int z) 
+    {
+        this.x = x;
+        this.z = z;
+    }
+
+    @Override
+    public boolean equals(Object o) 
+    {
+        if (this == o) return true;
+        if (!(o instanceof ColumnCoord)) return false;
+        ColumnCoord key = (ColumnCoord) o;
+        return x == key.x && z == key.z;
+    }
+
+    @Override
+    public int hashCode() 
+    {
+        int result = x;
+        result = 31 * result + z;
+        return result;
+    }
 }
