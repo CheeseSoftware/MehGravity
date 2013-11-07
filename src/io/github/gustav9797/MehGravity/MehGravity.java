@@ -280,7 +280,7 @@ public final class MehGravity extends JavaPlugin implements Listener
         {
                 ColumnCoord coord = entry.getKey();
                 int lowestMovedY = entry.getValue();
-                int highestMovedY = entry.getValue();
+                int highestMovedY = maxima.get(entry.getKey());
  
                 int searchBottom = Math.max(lowestMovedY - 1, 0);
                 // Search down and find the shortest span
