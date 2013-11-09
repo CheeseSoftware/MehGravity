@@ -285,7 +285,16 @@ public final class MehGravity extends JavaPlugin implements Listener
 						else
 						{
 							currentMaxFall = Math.min(tempCurrentMaxFall, currentMaxFall);
-							currentY = y;
+							//currentY = y;
+							int tempY = 0;
+							for(tempY = y; tempY >= minY; tempY--)
+							{
+								if(yLevels.contains(tempY) && blockList.get(tempY).containsKey(new Location(entry.getKey().x, tempY, entry.getKey().z)))
+								{
+									currentY = tempY;
+									break;
+								}
+							}
 							break;
 						}
 						

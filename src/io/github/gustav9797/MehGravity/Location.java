@@ -12,14 +12,6 @@ public class Location {
 		z_ = z;
 	}
 	
-	/*@Override
-	public boolean equals(Object other){
-	    Location otherLocation = (Location)other;
-	    if(x_ == otherLocation.getX() && y_ == otherLocation.getY() && z_ == otherLocation.getZ())
-	    	return true;
-	    return false;
-	}*/
-	
     @Override
     public boolean equals(Object o) 
     {
@@ -33,7 +25,7 @@ public class Location {
     public int hashCode() 
     {
         int result = x_;
-        result = 31 * result + z_;
+        result = 31 * result + 1024 * y_ + z_;
         return result;
     }
 	
