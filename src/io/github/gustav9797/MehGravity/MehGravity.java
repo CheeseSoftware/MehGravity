@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
@@ -34,6 +35,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 public final class MehGravity extends JavaPlugin implements Listener 
 {
 	static int blockLimit = 2000;
+	static List<String> gravityWorlds;
 	private FileConfiguration customConfig = null;
 	private File customConfigFile = null;
 
@@ -41,6 +43,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 	{
 		this.saveDefaultConfig();
 		blockLimit = MehGravity.this.getCustomConfig().getInt("blocklimit") ; 
+		gravityWorlds = MehGravity.this.getCustomConfig().getStringList("gravityWorlds");
 		getServer().getPluginManager().registerEvents(this, this);
 	}
 
@@ -52,11 +55,11 @@ public final class MehGravity extends JavaPlugin implements Listener
 	public void reloadCustomConfig() 
 	{
 	    if (customConfigFile == null) 
-	    	customConfigFile = new File(getDataFolder(), "customConfig.yml");
+	    	customConfigFile = new File(getDataFolder(), "config.yml");
 	    customConfig = YamlConfiguration.loadConfiguration(customConfigFile);
 	 
 	    // Look for defaults in the jar
-	    InputStream defConfigStream = this.getResource("customConfig.yml");
+	    InputStream defConfigStream = this.getResource("config.yml");
 	    if (defConfigStream != null) {
 	        YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
 	        customConfig.setDefaults(defConfig);
@@ -85,22 +88,24 @@ public final class MehGravity extends JavaPlugin implements Listener
 	public void saveDefaultConfig() 
 	{
 	    if (customConfigFile == null)
-	        customConfigFile = new File(getDataFolder(), "customConfig.yml");
+	        customConfigFile = new File(getDataFolder(), "config.yml");
 	    if (!customConfigFile.exists()) {            
-	         saveResource("customConfig.yml", false);
+	         saveResource("config.yml", false);
 	     }
 	}
 	
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) 
 	{
-		new GravityBlockBreak(this, event.getBlock(), event.getPlayer()).runTask(this);
+		if(gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName()))
+			new GravityBlockBreak(this, event.getBlock(), event.getPlayer()).runTask(this);
 	}
 
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event) 
 	{
-		BeginGravity(event.getBlockPlaced(), event.getPlayer());
+		if(gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName()))
+			BeginGravity(event.getBlockPlaced(), event.getPlayer());
 	}
 
 	static Location[] adjacentBlocks = { new Location(1, 0, 0),
@@ -182,7 +187,6 @@ public final class MehGravity extends JavaPlugin implements Listener
 			int currentLayerY = (int)i.next();
 			if (blockList.containsKey(currentLayerY)) 
 			{
-				player.sendMessage("size: " + blockList.get(currentLayerY).size());
 				Iterator<Entry<Location, Block>> it = blockList.get(currentLayerY).entrySet().iterator();
 				while (it.hasNext()) 
 				{
@@ -192,7 +196,6 @@ public final class MehGravity extends JavaPlugin implements Listener
 					Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - blocksWeCanMove, from.getLocation().getBlockZ());
 					BlockState toState = to.getState();				
 					to.setType(from.getType());
-					player.sendMessage(fromState.getBlock().getType().toString());
 					
 					switch(from.getType())
 					{
@@ -223,10 +226,10 @@ public final class MehGravity extends JavaPlugin implements Listener
 					}
 					//toSet.setData((byte)ToMoveDownState.getData());
 					world.getBlockAt(from.getLocation()).setType(Material.AIR);
-					it.remove();
+					//it.remove();
 				}
 			}
-			i.remove();
+			//i.remove();
 		}
 	}
 
@@ -234,8 +237,6 @@ public final class MehGravity extends JavaPlugin implements Listener
 	{
 		Map<ColumnCoord, Integer> minima = new HashMap<ColumnCoord, Integer>();
 		Map<ColumnCoord, Integer> maxima = new HashMap<ColumnCoord, Integer>();
-		
-		int minDistance = Integer.MAX_VALUE;
 		
 		Iterator<Integer> yiterator = yLevels.iterator();
 		while (yiterator.hasNext()) 
@@ -259,55 +260,40 @@ public final class MehGravity extends JavaPlugin implements Listener
 				}
 			}
 		}
-		
-		/*for(Map.Entry<ColumnCoord, Integer> entry : minima.entrySet()) 
-		{
-			ColumnCoord coord = entry.getKey();
-			int currentBlockY = entry.getValue();
-
-			for(int y = currentBlockY - 1; y > -10; y--)
+				
+		int currentMaxFall = Integer.MAX_VALUE;
+		for(Map.Entry<ColumnCoord, Integer> entry : maxima.entrySet()) 
+        {
+			int minY = minima.get(entry.getKey());
+			int maxY = entry.getValue();
+			for(int currentY = maxY; currentY >= minY; currentY--)
 			{
-				if(world.getBlockAt(coord.x, y, coord.z).getType().isSolid())
+				if(world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType() == Material.AIR)
 				{
-					if(currentBlockY - y - 1 < minDistance)
-						minDistance = currentBlockY - y - 1;
-					break;
+					int tempCurrentMaxFall = 0;
+					for(int y = currentY - 1; true; y--)
+					{
+						if(world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType() == Material.AIR)
+						{
+							tempCurrentMaxFall++;
+						}
+						else if(yLevels.contains(y) && blockList.get(y).containsKey(new Location(entry.getKey().x, y, entry.getKey().z)))
+						{
+							currentY = y;
+							break;
+						}
+						else
+						{
+							currentMaxFall = Math.min(tempCurrentMaxFall, currentMaxFall);
+							currentY = y;
+							break;
+						}
+						
+					}
 				}
 			}
-
-		}*/
-        for(Map.Entry<ColumnCoord, Integer> entry : minima.entrySet()) 
-        {
-                ColumnCoord coord = entry.getKey();
-                int lowestMovedY = entry.getValue();
-                int highestMovedY = maxima.get(entry.getKey());
- 
-                int searchBottom = Math.max(lowestMovedY - 1, 0);
-                // Search down and find the shortest span
-                for(int y = highestMovedY - 1; y >= searchBottom; y--) 
-                {
-                        // Not entirely intuitive, bottom is above top, as it represents either the bottom and top of the blocks they are connected to.
-                        // Find bottom edge, a.k.a air block.
-                        Block bottom = world.getBlockAt(coord.x, y, coord.z);
-                        if(bottom.getType() != Material.AIR)
-                                continue;
- 
-                        // Progress further, find first non-air block (top edge)
-                        for(; y >= 0; y--) 
-                        {
-                                Block top = world.getBlockAt(coord.x, y, coord.z);
-                                if(top.getType() == Material.AIR)
-                                        continue;
- 
-                                // Check if the block is part of the moving mass. If so, just continue with the outer loop (break out of this one)
-                                if(blockList.containsKey(top.getY()) && blockList.get(top.getY()).containsKey(new Location(top.getX(),top.getY(),top.getZ())))
-                                        break;
- 
-                                minDistance = Math.min(bottom.getY() - top.getY(), minDistance);
-                        }
-                }
         }
-		return minDistance;
+		return currentMaxFall;
 	}
 }
 

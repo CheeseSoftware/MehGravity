@@ -1,0 +1,19 @@
+# default config.yml
+#
+# Default values:
+#blocklimit: 2000
+#gravityWorlds:
+#  - AllWorlds
+#
+# Custom values:
+blocklimit: 2000
+# BlockLimit: The max amount of blocks the plugin should search until- 
+# it thinks it's part of the world. 2000 default, don't go too high!(> 20000)
+gravityWorlds:
+  - AllWorlds
+# If this list contains "AllWorlds", all worlds on your server will be affected by gravity.
+# To add your own worlds, use this example:
+#gravityWorlds:
+#  - WorldName1
+#  - WorldName2
+#  - OtherWorldsJustContinueLikeThis

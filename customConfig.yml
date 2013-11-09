@@ -1,4 +1,0 @@
-# default config.yml
-#BlockLimit: The max amount of blocks the plugin should search until- 
-#it thinks it's part of the world. 2000 default, don't go too high!(> 20000)
-blocklimit: 2000
