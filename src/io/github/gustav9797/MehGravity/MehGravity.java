@@ -17,9 +17,11 @@ import java.util.logging.Level;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
+import org.bukkit.Material.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -29,6 +31,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.Torch;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -180,6 +183,8 @@ public final class MehGravity extends JavaPlugin implements Listener
 		//Measure how far down we can move it
 		int blocksWeCanMove = findMovingSpaceDown(yLevels, blockList, world);
 		
+		Queue<Pair<BlockState, Block>> toPlaceLater = new LinkedList<Pair<BlockState, Block>>();
+		
 		//Move them down
 		Iterator<Integer> i = yLevels.iterator();
 		while (i.hasNext()) 
@@ -193,10 +198,12 @@ public final class MehGravity extends JavaPlugin implements Listener
 					Entry<Location, Block> pair = it.next();		
 					Block from = ((Block) pair.getValue());
 					BlockState fromState = from.getState();					
-					Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - blocksWeCanMove, from.getLocation().getBlockZ());
-					BlockState toState = to.getState();				
+					Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - blocksWeCanMove, from.getLocation().getBlockZ());			
 					to.setType(from.getType());
-					
+					BlockState toState = to.getState();	
+					getServer().getPlayer("gustav9797").sendMessage("before last type: " + from.getType() + " is solid? " + from.getType().isSolid());
+					if(!from.getType().isSolid())
+						toPlaceLater.add(new Pair<BlockState, Block>(from.getState(), to));
 					switch(from.getType())
 					{
 						case CHEST:
@@ -210,17 +217,6 @@ public final class MehGravity extends JavaPlugin implements Listener
 							fromInventory.clear();
 							break;
 						}
-						/*case WALL_SIGN: BUGGING ATM
-						{
-							player.sendMessage("wall SIGN!!!");
-							Sign fromSign = (Sign) fromState;
-							Sign toSign = (Sign) to.getState();
-							String[] tempSign = toSign.getLines();
-							tempSign = fromSign.getLines();
-							//toSign.setData(fromSign.getData());
-							to.setType(Material.SIGN);
-							break;
-						}*/
 						default:
 							break;
 					}
@@ -230,6 +226,43 @@ public final class MehGravity extends JavaPlugin implements Listener
 				}
 			}
 			//i.remove();
+		}
+		
+		Iterator<Pair<BlockState, Block>> lastIterator = toPlaceLater.iterator();
+		while(lastIterator.hasNext())
+		{
+			Pair<BlockState, Block> current = lastIterator.next();
+			BlockState fromState = current.getFirst();
+			Block to = current.getSecond();
+			to.setType(fromState.getType());
+			switch(fromState.getType())
+			{
+				case TORCH:
+				{
+					getServer().getPlayer("gustav9797").sendMessage("found a torch! moving it!");
+					Torch fromTorch = (Torch)fromState.getData();
+					Torch toTorch = (Torch) to.getState().getData();
+					toTorch.setFacingDirection(fromTorch.getFacing());
+					break;
+				}
+				case WALL_SIGN:
+				{
+					player.sendMessage("sign blabla");
+					Sign fromSign = (Sign) fromState;
+					Sign toSign = (Sign) to.getState();
+				
+					org.bukkit.material.Sign fromSignMat = (org.bukkit.material.Sign) fromSign.getData();
+					org.bukkit.material.Sign toSignMat = new org.bukkit.material.Sign(Material.WALL_SIGN);
+					toSignMat.setFacingDirection(fromSignMat.getFacing());
+					toSign.setData(toSignMat);							
+					String[] toLines = toSign.getLines();
+					toLines = fromSign.getLines();							
+					toSign.update();
+					break;
+				}
+				default:
+					break;
+			}
 		}
 	}
 
