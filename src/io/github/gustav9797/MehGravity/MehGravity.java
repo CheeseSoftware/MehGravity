@@ -32,7 +32,11 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
+import org.bukkit.material.PistonBaseMaterial;
+import org.bukkit.material.RedstoneWire;
 import org.bukkit.material.Torch;
+import org.bukkit.material.TrapDoor;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -118,8 +122,8 @@ public final class MehGravity extends JavaPlugin implements Listener
 			new Location(0, 0, -1) };
 	
 	static ArrayList<Material> annoyingBlocks = new ArrayList<Material>() {{ 
-		add(Material.WOOD_DOOR); 
-		add(Material.IRON_DOOR); 
+		add(Material.WOODEN_DOOR);
+		add(Material.IRON_DOOR_BLOCK); 
 		add(Material.TRAP_DOOR);
 		add(Material.TORCH);
 		add(Material.SAPLING);
@@ -136,6 +140,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 		add(Material.PAINTING);
 		add(Material.SIGN);
 		add(Material.SIGN_POST);
+		add(Material.WALL_SIGN);
 		add(Material.BED);
 		add(Material.ITEM_FRAME);
 		add(Material.FLOWER_POT);
@@ -246,9 +251,31 @@ public final class MehGravity extends JavaPlugin implements Listener
 					Entry<Location, BlockState> pair = it.next();		
 					BlockState from = ((BlockState) pair.getValue());
 					Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - blocksWeCanMove, from.getLocation().getBlockZ());
+					//player.sendMessage("checking material: " + from.getType());
 					if(annoyingBlocks.contains(from.getType()))
 					{
-						toPlaceLater.add(new Pair<BlockState, Block>(from, to));
+						Pair<BlockState, Block> toAdd = new Pair<BlockState, Block>(from, to);
+						toPlaceLater.add(toAdd);
+						if(from.getType() == Material.IRON_DOOR_BLOCK || from.getType() == Material.WOODEN_DOOR)
+						{
+							Block above = from.getBlock().getRelative(BlockFace.UP);
+							Block below = from.getBlock().getRelative(BlockFace.DOWN);
+							if(above.getType() == Material.IRON_DOOR_BLOCK || above.getType() == Material.WOODEN_DOOR)
+							{
+								from.getBlock().setType(Material.AIR);
+								above.setType(Material.AIR);
+								it.remove();
+								continue;
+							}
+							else if(below.getType() == Material.IRON_DOOR_BLOCK || below.getType() == Material.WOODEN_DOOR)
+							{
+								below.setType(Material.AIR);
+								from.getBlock().setType(Material.AIR);
+								toPlaceLater.remove(toAdd);
+								it.remove();
+								continue;
+							}
+						}
 						from.getBlock().setType(Material.AIR);
 						it.remove();
 					}
@@ -271,6 +298,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 					BlockState fromState = from;
 					Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - blocksWeCanMove, from.getLocation().getBlockZ());
 					to.setType(from.getType());
+					to.setData(from.getBlock().getData());
 					switch(from.getType())
 					{
 						case CHEST:
@@ -279,9 +307,17 @@ public final class MehGravity extends JavaPlugin implements Listener
 							Chest toChest = (Chest) to.getState();
 							Inventory fromInventory = fromChest.getBlockInventory();
 							Inventory toInventory = toChest.getBlockInventory();
-							
 							toInventory.setContents(fromChest.getBlockInventory().getContents());
 							fromInventory.clear();
+							to.setData(fromChest.getBlock().getData());
+							break;
+						}
+						case PISTON_BASE: case PISTON_STICKY_BASE:
+						{
+							PistonBaseMaterial fromPiston = (PistonBaseMaterial) fromState.getData();
+							PistonBaseMaterial toPiston = (PistonBaseMaterial) to.getState().getData();
+							toPiston.setFacingDirection(fromPiston.getFacing());
+							toPiston.setPowered(fromPiston.isPowered());
 							break;
 						}
 						default:
@@ -299,45 +335,149 @@ public final class MehGravity extends JavaPlugin implements Listener
 			Pair<BlockState, Block> current = lastIterator.next();
 			BlockState fromState = current.getFirst();
 			Block to = current.getSecond();
-			to.setType(fromState.getType());
+			if(fromState.getType() != Material.WOODEN_DOOR && fromState.getType() != Material.IRON_DOOR_BLOCK)
+			{
+				boolean hasBlockToSitOn = false;
+				for(int j = 0; j < adjacentBlocks.length; j++)
+				{
+					Block toCheck = world.getBlockAt(to.getX() + adjacentBlocks[j].getX(), to.getY() + adjacentBlocks[j].getY(), to.getZ() + adjacentBlocks[j].getZ());
+					if(toCheck.getType() != Material.AIR && !annoyingBlocks.contains(toCheck.getType()))
+					{
+						hasBlockToSitOn = true;
+						break;
+					}
+				}
+				if(!hasBlockToSitOn)
+				{
+					to.setType(Material.AIR);
+					continue;
+				}
+				to.setType(fromState.getType());
+				to.setData(fromState.getBlock().getData());
+			}
+
 			switch(fromState.getType())
 			{
 				case TORCH:
 				{
-					Torch fromTorch = (Torch)fromState.getData();
+					Torch fromTorch = (Torch) fromState.getData();
 					Torch toTorch = (Torch) to.getState().getData();
 					toTorch.setFacingDirection(fromTorch.getFacing());
 					break;
 				}
-				case WALL_SIGN:
-				{
+				case SIGN_POST: case WALL_SIGN:
+				{					
 					Sign fromSign = (Sign) fromState;
-					Sign toSign = (Sign) to.getState();
-				
+					Sign toSign = (Sign) to.getState();			
 					org.bukkit.material.Sign fromSignMat = (org.bukkit.material.Sign) fromSign.getData();
-					org.bukkit.material.Sign toSignMat = new org.bukkit.material.Sign(Material.WALL_SIGN);
-					toSignMat.setFacingDirection(fromSignMat.getFacing());
-					toSign.setData(toSignMat);							
-					String[] toLines = toSign.getLines();
-					toLines = fromSign.getLines();							
+					toSign.setData(fromSignMat);							
+					String[] fromLines = fromSign.getLines();
+					for(int index = 0; index < fromLines.length; index++)
+					{
+						toSign.setLine(index, fromLines[index]);
+					}
 					toSign.update();
 					break;
 				}
-				case SIGN_POST:
-				{					
-					Sign fromSign = (Sign) fromState;
-					Sign toSign = (Sign) to.getState();
-				
-					org.bukkit.material.Sign fromSignMat = (org.bukkit.material.Sign) fromSign.getData();
-					org.bukkit.material.Sign toSignMat = new org.bukkit.material.Sign(Material.SIGN_POST);
-					toSignMat.setFacingDirection(fromSignMat.getFacing());
-					toSign.setData(toSignMat);							
-					String[] toLines = toSign.getLines();
-					for(int index = 0; index < toLines.length; index++)
+				case TRAP_DOOR:
+				{
+					TrapDoor fromTrapDoor = (TrapDoor) fromState.getData();
+					TrapDoor toTrapDoor = (TrapDoor) to.getState().getData();
+					toTrapDoor.setOpen(fromTrapDoor.isOpen());
+					break;
+				}
+				case WOODEN_DOOR:
+				{
+					Block top = to.getRelative(BlockFace.UP, 1);
+					if(top.getRelative(BlockFace.DOWN).getType() == Material.WOODEN_DOOR)
+						break;
+
+					to.setType(Material.WOODEN_DOOR);
+					to.setData(fromState.getBlock().getData());
+
+					top.setType(Material.WOODEN_DOOR);
+					top.setData((byte) 8);
+					
+					//Now check if it's a double-door or single-door
+					int directionFacing = to.getData();
+					switch(directionFacing)
 					{
-						toSign.setLine(index, toLines[index]);
-					}	
-					toSign.update();
+						case 0: //Door is facing west
+						{
+							Block b = top.getRelative(BlockFace.NORTH);
+							if(b.getType() == Material.WOODEN_DOOR)
+								top.setData((byte) 9);
+							break;
+						}
+						case 1: //Door is facing north
+						{
+							Block b = top.getRelative(BlockFace.EAST);
+							if(b.getType() == Material.WOODEN_DOOR)
+								top.setData((byte) 9);
+							break;
+						}
+						case 2: //Door is facing east
+						{
+							Block b = top.getRelative(BlockFace.SOUTH);
+							if(b.getType() == Material.WOODEN_DOOR)
+								top.setData((byte) 9);
+							break;
+						}
+						case 3: //Door is facing south
+						{
+							Block b = top.getRelative(BlockFace.WEST);
+							if(b.getType() == Material.WOODEN_DOOR)
+								top.setData((byte) 9);
+							break;
+						}
+					}
+					break;
+				}
+				case IRON_DOOR_BLOCK:
+				{
+					Block top = to.getRelative(BlockFace.UP, 1);
+					if(top.getRelative(BlockFace.DOWN).getType() == Material.IRON_DOOR_BLOCK)
+						break;
+
+					to.setType(Material.IRON_DOOR_BLOCK);
+					to.setData(fromState.getBlock().getData());
+
+					top.setType(Material.IRON_DOOR_BLOCK);
+					top.setData((byte)8);
+					
+					//Now check if it's a double-door or single-door
+					int directionFacing = to.getData();
+					switch(directionFacing)
+					{
+						case 0: //Door is facing west
+						{
+							Block b = top.getRelative(BlockFace.NORTH);
+							if(b.getType() == Material.IRON_DOOR_BLOCK)
+								top.setData((byte) 9);
+							break;
+						}
+						case 1: //Door is facing north
+						{
+							Block b = top.getRelative(BlockFace.EAST);
+							if(b.getType() == Material.IRON_DOOR_BLOCK)
+								top.setData((byte) 9);
+							break;
+						}
+						case 2: //Door is facing east
+						{
+							Block b = top.getRelative(BlockFace.SOUTH);
+							if(b.getType() == Material.IRON_DOOR_BLOCK)
+								top.setData((byte) 9);
+							break;
+						}
+						case 3: //Door is facing south
+						{
+							Block b = top.getRelative(BlockFace.WEST);
+							if(b.getType() == Material.IRON_DOOR_BLOCK)
+								top.setData((byte) 9);
+							break;
+						}
+					}
 					break;
 				}
 				default:
