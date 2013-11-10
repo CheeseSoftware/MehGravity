@@ -17,12 +17,18 @@ import java.util.logging.Level;
 
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Beacon;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
+import org.bukkit.block.Dispenser;
+import org.bukkit.block.Dropper;
+import org.bukkit.block.Furnace;
+import org.bukkit.block.Hopper;
+import org.bukkit.block.Jukebox;
+import org.bukkit.block.NoteBlock;
 import org.bukkit.block.Sign;
-import org.bukkit.Material.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -31,10 +37,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
+import org.bukkit.material.Diode;
 import org.bukkit.material.PistonBaseMaterial;
-import org.bukkit.material.RedstoneWire;
 import org.bukkit.material.Torch;
 import org.bukkit.material.TrapDoor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -166,6 +170,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 		add(Material.POWERED_RAIL);
 		add(Material.DETECTOR_RAIL);
 		add(Material.ACTIVATOR_RAIL);
+		add(Material.TRIPWIRE);
 		}};
 	
 	public void BeginGravity(Block startBlock, Player player)
@@ -301,15 +306,84 @@ public final class MehGravity extends JavaPlugin implements Listener
 					to.setData(from.getBlock().getData());
 					switch(from.getType())
 					{
-						case CHEST:
-						{
+						case CHEST: case TRAPPED_CHEST:
+						{	
 							Chest fromChest = (Chest) fromState;
 							Chest toChest = (Chest) to.getState();
-							Inventory fromInventory = fromChest.getBlockInventory();
-							Inventory toInventory = toChest.getBlockInventory();
-							toInventory.setContents(fromChest.getBlockInventory().getContents());
+							Inventory fromInventory = fromChest.getInventory();
+							Inventory toInventory = toChest.getInventory();
+							toInventory.setContents(fromInventory.getContents());
 							fromInventory.clear();
-							to.setData(fromChest.getBlock().getData());
+							break;
+						}
+						case FURNACE: case BURNING_FURNACE:
+						{
+							Furnace fromFurnace = (Furnace) fromState;
+							Furnace toFurnace = (Furnace) to.getState();
+							Inventory fromInventory = fromFurnace.getInventory();
+							Inventory toInventory = toFurnace.getInventory();						
+							toInventory.setContents(fromInventory.getContents());
+							toFurnace.setBurnTime(fromFurnace.getBurnTime());
+							toFurnace.setCookTime(fromFurnace.getCookTime());
+							fromInventory.clear();
+							break;
+						}
+						case HOPPER:
+						{
+							Hopper fromHopper = (Hopper) fromState;
+							Hopper toHopper = (Hopper) to.getState();
+							Inventory fromInventory = fromHopper.getInventory();
+							Inventory toInventory = toHopper.getInventory();
+							toInventory.setContents(fromInventory.getContents());
+							fromInventory.clear();
+							break;
+						}
+						case DROPPER:
+						{
+							Dropper fromDropper = (Dropper) fromState;
+							Dropper toDropper = (Dropper) to.getState();
+							Inventory fromInventory = fromDropper.getInventory();
+							Inventory toInventory = toDropper.getInventory();
+							toInventory.setContents(fromInventory.getContents());
+							fromInventory.clear();
+							break;
+						}
+						case BEACON:
+						{
+							Beacon fromBeacon = (Beacon) fromState;
+							Beacon toBeacon = (Beacon) to.getState();
+							Inventory fromInventory = fromBeacon.getInventory();
+							Inventory toInventory = toBeacon.getInventory();
+							toInventory.setContents(fromInventory.getContents());
+							fromInventory.clear();
+							break;
+						}
+						case DISPENSER:
+						{
+							Dispenser fromDispenser = (Dispenser) fromState;
+							Dispenser toDispenser = (Dispenser) to.getState();
+							Inventory fromInventory = fromDispenser.getInventory();
+							Inventory toInventory = toDispenser.getInventory();
+							toInventory.setContents(fromInventory.getContents());
+							fromInventory.clear();
+							break;
+						}
+						case JUKEBOX:
+						{
+							Jukebox fromJukebox = (Jukebox) fromState;
+							Jukebox toJukebox = (Jukebox) to.getState();
+							if(fromJukebox.isPlaying())
+							{
+								toJukebox.setPlaying(fromJukebox.getPlaying());
+							}
+							fromJukebox.setPlaying(null);
+							break;
+						}
+						case NOTE_BLOCK:
+						{
+							NoteBlock fromNoteBlock = (NoteBlock) fromState;
+							NoteBlock toNoteBlock = (NoteBlock) to.getState();
+							toNoteBlock.setNote(fromNoteBlock.getNote());
 							break;
 						}
 						case PISTON_BASE: case PISTON_STICKY_BASE:
