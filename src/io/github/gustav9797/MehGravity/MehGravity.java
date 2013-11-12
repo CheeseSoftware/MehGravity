@@ -37,7 +37,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.material.Diode;
 import org.bukkit.material.PistonBaseMaterial;
 import org.bukkit.material.Torch;
 import org.bukkit.material.TrapDoor;
@@ -119,14 +118,14 @@ public final class MehGravity extends JavaPlugin implements Listener
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) 
 	{
-		if(gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName()))
+		if(!event.getPlayer().hasPermission("mehgravity.nocheck") && (gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName())))
 			new GravityBlockBreak(this, event.getBlock(), event.getPlayer()).runTask(this);
 	}
 
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event) 
 	{
-		if(gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName()))
+		if(!event.getPlayer().hasPermission("mehgravity.nocheck") && (gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName())))
 			BeginGravity(event.getBlockPlaced(), event.getPlayer());
 	}
 
