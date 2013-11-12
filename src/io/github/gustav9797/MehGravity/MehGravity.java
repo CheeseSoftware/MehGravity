@@ -43,6 +43,7 @@ import org.bukkit.material.Torch;
 import org.bukkit.material.TrapDoor;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.mcstats.Metrics;
 
 public final class MehGravity extends JavaPlugin implements Listener 
 {
@@ -57,6 +58,15 @@ public final class MehGravity extends JavaPlugin implements Listener
 		blockLimit = MehGravity.this.getCustomConfig().getInt("blocklimit") ; 
 		gravityWorlds = MehGravity.this.getCustomConfig().getStringList("gravityWorlds");
 		getServer().getPluginManager().registerEvents(this, this);
+
+		//Metrics start
+		try {
+		    Metrics metrics = new Metrics(this);
+		    metrics.start();
+		} catch (IOException e) {
+		    // Failed to submit the stats :-(
+		}
+		//Metrics end
 	}
 
 	public void onDisable() 
