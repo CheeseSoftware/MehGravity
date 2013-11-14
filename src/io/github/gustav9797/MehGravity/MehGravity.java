@@ -118,14 +118,14 @@ public final class MehGravity extends JavaPlugin implements Listener
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) 
 	{
-		if(!event.getPlayer().hasPermission("mehgravity.nocheck") && (gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName())))
+		if((!event.getPlayer().isPermissionSet("mehgravity.nocheck") || (event.getPlayer().isPermissionSet("mehgravity.nocheck") && !event.getPlayer().hasPermission("mehgravity.nocheck")))&& (gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName())))
 			new GravityBlockBreak(this, event.getBlock(), event.getPlayer()).runTask(this);
 	}
 
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event) 
 	{
-		if(!event.getPlayer().hasPermission("mehgravity.nocheck") && (gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName())))
+		if((!event.getPlayer().isPermissionSet("mehgravity.nocheck") || (event.getPlayer().isPermissionSet("mehgravity.nocheck") && !event.getPlayer().hasPermission("mehgravity.nocheck")))&& (gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName())))
 			BeginGravity(event.getBlockPlaced(), event.getPlayer());
 	}
 
@@ -186,7 +186,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 	{
 		// Check if we can find bedrock, saves lots of time..
 		Location startLocation = new Location(startBlock.getX(), startBlock.getY(), startBlock.getZ());
-		for (int y = startBlock.getY(); y > -10; y--) 
+		/*for (int y = startBlock.getY(); y > -10; y--) 
 		{
 			Block currentBlock = player.getWorld().getBlockAt(startBlock.getX(), y, startBlock.getZ());
 			if (currentBlock.getType() != Material.AIR) 
@@ -196,7 +196,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 			} 
 			else
 				break;
-		}
+		}*/
 
 		// Now that we haven't found bedrock, lets store what blocks it's
 		// connected to(within the set blocklimit!)
@@ -210,6 +210,30 @@ public final class MehGravity extends JavaPlugin implements Listener
 		while (!blocksToCheck.isEmpty()) 
 		{
 			Location currentParent = blocksToCheck.poll();
+			for (int y = currentParent.getY(); y > -10; y--) 
+			{			
+				Block currentBlock = player.getWorld().getBlockAt(currentParent.getX(), y, currentParent.getZ());
+				//Location currentLocation = new Location(currentBlock.getX(), y, currentBlock.getZ());
+				if (currentBlock.getType() == Material.AIR) //We didn't find bedrock, can't continue search		
+				{
+					//player.sendMessage("found air"+ "at: " + currentLocation);
+					break;
+				}
+				else if (currentBlock.getType() == Material.BEDROCK)
+				{
+					//player.sendMessage("found bedrock"+ "at: " + currentLocation);
+					return;
+				}
+				/*else if(!(blockList.containsKey(y) && blockList.get(y).containsKey(currentLocation)))
+				{
+					//player.sendMessage("added to structure"+ "at: " + currentLocation);
+					if (!blockList.containsKey(y))
+						blockList.put(y, new HashMap<Location, BlockState>());
+					blockList.get(y).put(currentLocation, currentBlock.getState());
+					totalBlocks++;
+				}*/
+			}
+			
 			for (int i = 0; i < 6; i++) 
 			{
 				Location currentLocation = new Location(

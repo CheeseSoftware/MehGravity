@@ -12,6 +12,12 @@ public class Location {
 		z_ = z;
 	}
 	
+	@Override
+	public String toString()
+	{
+		return ("X:" + x_ + " Y:" + y_ + " Z:" + z_);
+	}
+	
     @Override
     public boolean equals(Object o) 
     {
