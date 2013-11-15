@@ -242,22 +242,8 @@ public final class MehGravity extends JavaPlugin implements Listener
 	
 	public void BeginGravity(Block startBlock)
 	{
-		// Check if we can find bedrock, saves lots of time..
 		Location startLocation = new Location(startBlock.getX(), startBlock.getY(), startBlock.getZ());
-		/*for (int y = startBlock.getY(); y > -10; y--) 
-		{
-			Block currentBlock = player.getWorld().getBlockAt(startBlock.getX(), y, startBlock.getZ());
-			if (currentBlock.getType() != Material.AIR) 
-			{
-				if (currentBlock.getType() == Material.BEDROCK) 
-					return;
-			} 
-			else
-				break;
-		}*/
-
-		// Now that we haven't found bedrock, lets store what blocks it's
-		// connected to(within the set blocklimit!)
+		//Store what blocks it's connected to(within the set blocklimit!)
 		int totalBlocks = 0;
 		HashMap<Integer, HashMap<Location, BlockState>> blockList = new HashMap<Integer, HashMap<Location, BlockState>>();
 		Queue<Location> blocksToCheck = new LinkedList<Location>();
@@ -271,25 +257,10 @@ public final class MehGravity extends JavaPlugin implements Listener
 			for (int y = currentParent.getY(); y > -10; y--) 
 			{			
 				Block currentBlock = world.getBlockAt(currentParent.getX(), y, currentParent.getZ());
-				//Location currentLocation = new Location(currentBlock.getX(), y, currentBlock.getZ());
 				if (currentBlock.getType() == Material.AIR) //We didn't find bedrock, can't continue search		
-				{
-					//player.sendMessage("found air"+ "at: " + currentLocation);
 					break;
-				}
 				else if (currentBlock.getType() == Material.BEDROCK)
-				{
-					//player.sendMessage("found bedrock"+ "at: " + currentLocation);
 					return;
-				}
-				/*else if(!(blockList.containsKey(y) && blockList.get(y).containsKey(currentLocation)))
-				{
-					//player.sendMessage("added to structure"+ "at: " + currentLocation);
-					if (!blockList.containsKey(y))
-						blockList.put(y, new HashMap<Location, BlockState>());
-					blockList.get(y).put(currentLocation, currentBlock.getState());
-					totalBlocks++;
-				}*/
 			}
 			
 			for (int i = 0; i < 6; i++) 
@@ -324,12 +295,11 @@ public final class MehGravity extends JavaPlugin implements Listener
 		{
 			Entry<Integer, HashMap<Location, BlockState>> ypair = yit.next();
 			yLevels.add((int) ypair.getKey());
-			//yit.remove();
 		}
 		Collections.sort(yLevels);
 		
 		//Measure how far down we can move it
-		int blocksWeCanMove = findMovingSpaceDown(yLevels, blockList, world);
+		int blocksWeCanMove = FindMovingSpaceDown(yLevels, blockList, world);
 		
 		//Declare a queue for non-solid blocks that will break if they are placed on air to be placed later
 		Queue<Pair<BlockState, Block>> toPlaceLater = new LinkedList<Pair<BlockState, Block>>();
@@ -347,7 +317,6 @@ public final class MehGravity extends JavaPlugin implements Listener
 					Entry<Location, BlockState> pair = it.next();		
 					BlockState from = ((BlockState) pair.getValue());
 					Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - blocksWeCanMove, from.getLocation().getBlockZ());
-					//player.sendMessage("checking material: " + from.getType());
 					if(annoyingBlocks.contains(from.getType()))
 					{
 						Pair<BlockState, Block> toAdd = new Pair<BlockState, Block>(from, to);
@@ -380,7 +349,85 @@ public final class MehGravity extends JavaPlugin implements Listener
 		}
 		
 		//Move solid blocks down
-		i = yLevels.iterator();
+		MoveDown(world, toPlaceLater, blocksWeCanMove, yLevels, blockList);
+	}
+
+	public int FindMovingSpaceDown(Vector<Integer> yLevels, HashMap<Integer, HashMap<Location, BlockState>> blockList, World world) 
+	{
+		Map<ColumnCoord, Integer> minima = new HashMap<ColumnCoord, Integer>();
+		Map<ColumnCoord, Integer> maxima = new HashMap<ColumnCoord, Integer>();
+		
+		Iterator<Integer> yiterator = yLevels.iterator();
+		while (yiterator.hasNext()) 
+		{
+			Iterator<Entry<Location, BlockState>> xziterator = blockList.get(yiterator.next()).entrySet().iterator();
+			while (xziterator.hasNext()) 
+			{
+				BlockState block = xziterator.next().getValue();
+				ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
+				Integer min = minima.get(coord);
+				Integer max = maxima.get(coord);
+				if(min == null) 
+				{	
+					minima.put(coord, block.getY());
+					maxima.put(coord, block.getY());
+				} 
+				else 
+				{
+					minima.put(coord, Math.min(min, block.getY()));
+					maxima.put(coord, Math.max(max, block.getY()));
+				}
+			}
+		}
+				
+		int currentMaxFall = Integer.MAX_VALUE;
+		for(Map.Entry<ColumnCoord, Integer> entry : maxima.entrySet()) 
+        {
+			int minY = minima.get(entry.getKey());
+			int maxY = entry.getValue();
+			for(int currentY = maxY; currentY >= minY; currentY--)
+			{
+				if(world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType() == Material.AIR)
+				{
+					int tempCurrentMaxFall = 0;
+					for(int y = currentY - 1; true; y--)
+					{
+						if(world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType() == Material.AIR)
+						{
+							tempCurrentMaxFall++;
+						}
+						else if(yLevels.contains(y) && blockList.get(y).containsKey(new Location(entry.getKey().x, y, entry.getKey().z)))
+						{
+							currentY = y;
+							break;
+						}
+						else
+						{
+							currentMaxFall = Math.min(tempCurrentMaxFall, currentMaxFall);
+							//currentY = y;
+							int tempY = 0;
+							for(tempY = y; tempY >= minY; tempY--)
+							{
+								if(yLevels.contains(tempY) && blockList.get(tempY).containsKey(new Location(entry.getKey().x, tempY, entry.getKey().z)))
+								{
+									currentY = tempY;
+									break;
+								}
+							}
+							break;
+						}
+						
+					}
+				}
+			}
+        }
+		return currentMaxFall;
+	}
+
+	public void MoveDown(World world, Queue<Pair<BlockState, Block>> toPlaceLater, int blocksWeCanMove, Vector<Integer> yLevels, HashMap<Integer, HashMap<Location, BlockState>> blockList)
+	{
+		//Move solid blocks down
+		Iterator<Integer> i = yLevels.iterator();
 		while (i.hasNext()) 
 		{
 			int currentLayerY = (int)i.next();
@@ -649,78 +696,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 					break;
 			}
 		}
-	}
 
-	public int findMovingSpaceDown(Vector<Integer> yLevels, HashMap<Integer, HashMap<Location, BlockState>> blockList, World world) 
-	{
-		Map<ColumnCoord, Integer> minima = new HashMap<ColumnCoord, Integer>();
-		Map<ColumnCoord, Integer> maxima = new HashMap<ColumnCoord, Integer>();
-		
-		Iterator<Integer> yiterator = yLevels.iterator();
-		while (yiterator.hasNext()) 
-		{
-			Iterator<Entry<Location, BlockState>> xziterator = blockList.get(yiterator.next()).entrySet().iterator();
-			while (xziterator.hasNext()) 
-			{
-				BlockState block = xziterator.next().getValue();
-				ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
-				Integer min = minima.get(coord);
-				Integer max = maxima.get(coord);
-				if(min == null) 
-				{	
-					minima.put(coord, block.getY());
-					maxima.put(coord, block.getY());
-				} 
-				else 
-				{
-					minima.put(coord, Math.min(min, block.getY()));
-					maxima.put(coord, Math.max(max, block.getY()));
-				}
-			}
-		}
-				
-		int currentMaxFall = Integer.MAX_VALUE;
-		for(Map.Entry<ColumnCoord, Integer> entry : maxima.entrySet()) 
-        {
-			int minY = minima.get(entry.getKey());
-			int maxY = entry.getValue();
-			for(int currentY = maxY; currentY >= minY; currentY--)
-			{
-				if(world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType() == Material.AIR)
-				{
-					int tempCurrentMaxFall = 0;
-					for(int y = currentY - 1; true; y--)
-					{
-						if(world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType() == Material.AIR)
-						{
-							tempCurrentMaxFall++;
-						}
-						else if(yLevels.contains(y) && blockList.get(y).containsKey(new Location(entry.getKey().x, y, entry.getKey().z)))
-						{
-							currentY = y;
-							break;
-						}
-						else
-						{
-							currentMaxFall = Math.min(tempCurrentMaxFall, currentMaxFall);
-							//currentY = y;
-							int tempY = 0;
-							for(tempY = y; tempY >= minY; tempY--)
-							{
-								if(yLevels.contains(tempY) && blockList.get(tempY).containsKey(new Location(entry.getKey().x, tempY, entry.getKey().z)))
-								{
-									currentY = tempY;
-									break;
-								}
-							}
-							break;
-						}
-						
-					}
-				}
-			}
-        }
-		return currentMaxFall;
 	}
 }
 
