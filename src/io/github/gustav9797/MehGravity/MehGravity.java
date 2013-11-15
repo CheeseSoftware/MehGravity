@@ -35,7 +35,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockFadeEvent;
+import org.bukkit.event.block.BlockFormEvent;
+import org.bukkit.event.block.BlockPistonEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.material.PistonBaseMaterial;
 import org.bukkit.material.Torch;
@@ -53,9 +60,9 @@ public final class MehGravity extends JavaPlugin implements Listener
 
 	public void onEnable() 
 	{
-		this.saveDefaultConfig();
-		blockLimit = MehGravity.this.getCustomConfig().getInt("blocklimit") ; 
-		gravityWorlds = MehGravity.this.getCustomConfig().getStringList("gravityWorlds");
+		saveDefaultConfig();
+		blockLimit = getCustomConfig().getInt("blocklimit") ; 
+		gravityWorlds = getCustomConfig().getStringList("gravityWorlds");
 		getServer().getPluginManager().registerEvents(this, this);
 
 		//Metrics start
@@ -118,15 +125,66 @@ public final class MehGravity extends JavaPlugin implements Listener
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) 
 	{
-		if((!event.getPlayer().isPermissionSet("mehgravity.nocheck") || (event.getPlayer().isPermissionSet("mehgravity.nocheck") && !event.getPlayer().hasPermission("mehgravity.nocheck")))&& (gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName())))
-			new GravityBlockBreak(this, event.getBlock(), event.getPlayer()).runTask(this);
+		if(HasPerms(event.getPlayer()))
+			CheckAround(event.getBlock(), 1);
 	}
 
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event) 
 	{
-		if((!event.getPlayer().isPermissionSet("mehgravity.nocheck") || (event.getPlayer().isPermissionSet("mehgravity.nocheck") && !event.getPlayer().hasPermission("mehgravity.nocheck")))&& (gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(event.getPlayer().getWorld().getName())))
-			BeginGravity(event.getBlockPlaced(), event.getPlayer());
+		if(HasPerms(event.getPlayer()))
+			Check(event.getBlockPlaced());
+	}
+	
+	@EventHandler
+	public void onBlockBurn(BlockBurnEvent event)
+	{
+		CheckAround(event.getBlock(), 1);
+	}
+	
+	@EventHandler
+	public void onLeavesDecay(LeavesDecayEvent event)
+	{
+		CheckAround(event.getBlock(), 1);
+	}
+	
+	@EventHandler
+	public void onBlockPistonExtend(BlockPistonExtendEvent event)
+	{
+		Block base = event.getBlock();
+		Block toCheck = base.getWorld().getBlockAt(new org.bukkit.Location(base.getWorld(), base.getX() + event.getDirection().getModX(), base.getY() + event.getDirection().getModY(), base.getZ() + event.getDirection().getModZ()));		
+		CheckAround(toCheck, 10);
+		//Check(toCheck);
+		//getServer().getPlayer("gustav9797").sendMessage(event.getEventName() + " - " + event.getDirection() + " - " + event.getBlock());
+		getServer().getPlayer("gustav9797").sendMessage(event.getEventName() + " - " + toCheck);
+	}
+	
+	@EventHandler
+	public void onBlockPistonRetract(BlockPistonRetractEvent event)
+	{
+		Block base = event.getBlock();
+		Block toCheck = base.getWorld().getBlockAt(new org.bukkit.Location(base.getWorld(), base.getX() + event.getDirection().getModX(), base.getY() + event.getDirection().getModY(), base.getZ() + event.getDirection().getModZ()));
+		CheckAround(toCheck, 10);
+		//Check(toCheck);
+		//getServer().getPlayer("gustav9797").sendMessage(event.getEventName() + " - " + event.getDirection() + " - " + event.getBlock());
+		getServer().getPlayer("gustav9797").sendMessage(event.getEventName() + " - " + toCheck);
+	}
+	
+	public boolean HasPerms(Player player)
+	{
+		if((!player.isPermissionSet("mehgravity.nocheck") || (player.isPermissionSet("mehgravity.nocheck") && !player.hasPermission("mehgravity.nocheck")))&& (gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(player.getWorld().getName())))
+			return true;
+		return false;
+	}
+	
+	public void CheckAround(Block block, int delay)
+	{
+		new GravityBlockBreak(this, block).runTaskLater(this, delay);
+	}
+	
+	public void Check(Block block)
+	{
+		BeginGravity(block);
 	}
 
 	static Location[] adjacentBlocks = { new Location(1, 0, 0),
@@ -182,7 +240,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 		add(Material.TRIPWIRE);
 		}};
 	
-	public void BeginGravity(Block startBlock, Player player)
+	public void BeginGravity(Block startBlock)
 	{
 		// Check if we can find bedrock, saves lots of time..
 		Location startLocation = new Location(startBlock.getX(), startBlock.getY(), startBlock.getZ());
@@ -206,13 +264,13 @@ public final class MehGravity extends JavaPlugin implements Listener
 		blocksToCheck.add(startLocation);
 		blockList.put(startBlock.getY(), new HashMap<Location, BlockState>());
 		blockList.get(startBlock.getY()).put(startLocation, startBlock.getState());
-		World world = player.getWorld();
+		World world = startBlock.getWorld();
 		while (!blocksToCheck.isEmpty()) 
 		{
 			Location currentParent = blocksToCheck.poll();
 			for (int y = currentParent.getY(); y > -10; y--) 
 			{			
-				Block currentBlock = player.getWorld().getBlockAt(currentParent.getX(), y, currentParent.getZ());
+				Block currentBlock = world.getBlockAt(currentParent.getX(), y, currentParent.getZ());
 				//Location currentLocation = new Location(currentBlock.getX(), y, currentBlock.getZ());
 				if (currentBlock.getType() == Material.AIR) //We didn't find bedrock, can't continue search		
 				{
@@ -669,12 +727,10 @@ public final class MehGravity extends JavaPlugin implements Listener
 class GravityBlockBreak extends BukkitRunnable
 {
 	Block startBlock;
-	Player player;
 	MehGravity plugin;
-	public GravityBlockBreak(MehGravity plugin, Block startBlock, Player player)
+	public GravityBlockBreak(MehGravity plugin, Block startBlock)
 	{
 		this.startBlock = startBlock;
-		this.player = player;
 		this.plugin = plugin;
 	}
 	
@@ -683,13 +739,13 @@ class GravityBlockBreak extends BukkitRunnable
 	{
 		for(int i = 0; i < 6; i++)
 		{
-			Block currentBlock = player.getWorld().getBlockAt(
+			Block currentBlock = startBlock.getWorld().getBlockAt(
 					startBlock.getX() + MehGravity.adjacentBlocks[i].getX(), 
 					startBlock.getY() + MehGravity.adjacentBlocks[i].getY(), 
 					startBlock.getZ() + MehGravity.adjacentBlocks[i].getZ());
 			
 			if(currentBlock.getType() != Material.AIR)
-				plugin.BeginGravity(currentBlock, player);
+				plugin.BeginGravity(currentBlock);
 		}
 	}
 }
