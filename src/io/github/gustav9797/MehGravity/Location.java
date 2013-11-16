@@ -38,4 +38,7 @@ public class Location {
 	public int getX() { return x_; }
 	public int getY() { return y_; }
 	public int getZ() { return z_; }
+	public void setX(int x) { x_ = x; }
+	public void setY(int y) { y_ = y; }
+	public void setZ(int z) { z_ = z; }
 }

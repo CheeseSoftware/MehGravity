@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -17,18 +16,8 @@ import java.util.logging.Level;
 
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Beacon;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.Chest;
-import org.bukkit.block.Dispenser;
-import org.bukkit.block.Dropper;
-import org.bukkit.block.Furnace;
-import org.bukkit.block.Hopper;
-import org.bukkit.block.Jukebox;
-import org.bukkit.block.NoteBlock;
-import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -36,17 +25,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
-import org.bukkit.event.block.BlockFadeEvent;
-import org.bukkit.event.block.BlockFormEvent;
-import org.bukkit.event.block.BlockPistonEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.material.PistonBaseMaterial;
-import org.bukkit.material.Torch;
-import org.bukkit.material.TrapDoor;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.mcstats.Metrics;
@@ -57,6 +40,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 	static List<String> gravityWorlds;
 	private FileConfiguration customConfig = null;
 	private File customConfigFile = null;
+	private StructureHandler structureHandler;
 
 	public void onEnable() 
 	{
@@ -64,6 +48,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 		blockLimit = getCustomConfig().getInt("blocklimit") ; 
 		gravityWorlds = getCustomConfig().getStringList("gravityWorlds");
 		getServer().getPluginManager().registerEvents(this, this);
+		structureHandler = new StructureHandler(this);
 
 		//Metrics start
 		try {
@@ -126,7 +111,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 	public void onBlockBreak(BlockBreakEvent event) 
 	{
 		if(HasPerms(event.getPlayer()))
-			CheckAround(event.getBlock(), 1);
+			CheckAround(event.getBlock(), 0);
 	}
 
 	@EventHandler
@@ -139,13 +124,13 @@ public final class MehGravity extends JavaPlugin implements Listener
 	@EventHandler
 	public void onBlockBurn(BlockBurnEvent event)
 	{
-		CheckAround(event.getBlock(), 1);
+		CheckAround(event.getBlock(), 0);
 	}
 	
 	@EventHandler
 	public void onLeavesDecay(LeavesDecayEvent event)
 	{
-		CheckAround(event.getBlock(), 1);
+		CheckAround(event.getBlock(), 0);
 	}
 	
 	@EventHandler
@@ -179,7 +164,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 	
 	public void CheckAround(Block block, int delay)
 	{
-		new GravityBlockBreak(this, block).runTaskLater(this, delay);
+		new GravityCheckAroundLater(this, block).runTaskLater(this, delay);
 	}
 	
 	public void Check(Block block)
@@ -192,7 +177,8 @@ public final class MehGravity extends JavaPlugin implements Listener
 			new Location(0, -1, 0), new Location(0, 0, 1),
 			new Location(0, 0, -1) };
 	
-	static ArrayList<Material> annoyingBlocks = new ArrayList<Material>() {{ 
+	@SuppressWarnings("serial")
+	static final ArrayList<Material> annoyingBlocks = new ArrayList<Material>() {{ 
 		add(Material.WOODEN_DOOR);
 		add(Material.IRON_DOOR_BLOCK); 
 		add(Material.TRAP_DOOR);
@@ -243,16 +229,15 @@ public final class MehGravity extends JavaPlugin implements Listener
 	public void BeginGravity(Block startBlock)
 	{
 		Location startLocation = new Location(startBlock.getX(), startBlock.getY(), startBlock.getZ());
-		//Store what blocks it's connected to(within the set blocklimit!)
-		int totalBlocks = 0;
-		HashMap<Integer, HashMap<Location, BlockState>> blockList = new HashMap<Integer, HashMap<Location, BlockState>>();
+		Structure structure = new Structure(structureHandler.GetFreeStructureId(), startBlock.getWorld());
 		Queue<Location> blocksToCheck = new LinkedList<Location>();
 		blocksToCheck.add(startLocation);
-		blockList.put(startBlock.getY(), new HashMap<Location, BlockState>());
-		blockList.get(startBlock.getY()).put(startLocation, startBlock.getState());
+		structure.AddBlock(startBlock.getState(), startLocation);
+		structure.totalBlocks++;
 		World world = startBlock.getWorld();
 		while (!blocksToCheck.isEmpty()) 
 		{
+			//Store all blocks in the structure
 			Location currentParent = blocksToCheck.poll();
 			for (int y = currentParent.getY(); y > -10; y--) 
 			{			
@@ -260,7 +245,9 @@ public final class MehGravity extends JavaPlugin implements Listener
 				if (currentBlock.getType() == Material.AIR) //We didn't find bedrock, can't continue search		
 					break;
 				else if (currentBlock.getType() == Material.BEDROCK)
+				{
 					return;
+				}
 			}
 			
 			for (int i = 0; i < 6; i++) 
@@ -269,490 +256,29 @@ public final class MehGravity extends JavaPlugin implements Listener
 						adjacentBlocks[i].getX() + currentParent.getX(),
 						adjacentBlocks[i].getY() + currentParent.getY(),
 						adjacentBlocks[i].getZ() + currentParent.getZ());
-				Block currentBlock = world.getBlockAt(currentLocation.getX(),
-						currentLocation.getY(), currentLocation.getZ());
-
-				if (!blockList.containsKey(currentBlock.getY()))
-					blockList.put(currentBlock.getY(), new HashMap<Location, BlockState>());
-
-				if (!blockList.get(currentBlock.getY()).containsValue(currentBlock.getState()) && currentBlock.getType() != Material.AIR) 
-				{
-					blockList.get(currentBlock.getY()).put(currentLocation, currentBlock.getState());
-					blocksToCheck.add(currentLocation);
-					totalBlocks++;
-				}
-			}
-
-			if (totalBlocks >= blockLimit)
-				return;
-		}
-		
-		// Now we know that we have a massive floating thing that should drop
-		// down, lets store it in an array of collections of blocks sorted by y-layer.
-		Vector<Integer> yLevels = new Vector<Integer>();
-		Iterator<Entry<Integer, HashMap<Location, BlockState>>> yit = blockList.entrySet().iterator();
-		while (yit.hasNext()) 
-		{
-			Entry<Integer, HashMap<Location, BlockState>> ypair = yit.next();
-			yLevels.add((int) ypair.getKey());
-		}
-		Collections.sort(yLevels);
-		
-		//Measure how far down we can move it
-		int blocksWeCanMove = FindMovingSpaceDown(yLevels, blockList, world);
-		
-		//Declare a queue for non-solid blocks that will break if they are placed on air to be placed later
-		Queue<Pair<BlockState, Block>> toPlaceLater = new LinkedList<Pair<BlockState, Block>>();
-		
-		//Store all non-solid blocks
-		Iterator<Integer> i = yLevels.iterator();
-		while (i.hasNext()) 
-		{
-			int currentLayerY = (int)i.next();
-			if (blockList.containsKey(currentLayerY)) 
-			{
-				Iterator<Entry<Location, BlockState>> it = blockList.get(currentLayerY).entrySet().iterator();
-				while (it.hasNext()) 
-				{
-					Entry<Location, BlockState> pair = it.next();		
-					BlockState from = ((BlockState) pair.getValue());
-					Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - blocksWeCanMove, from.getLocation().getBlockZ());
-					if(annoyingBlocks.contains(from.getType()))
-					{
-						Pair<BlockState, Block> toAdd = new Pair<BlockState, Block>(from, to);
-						toPlaceLater.add(toAdd);
-						if(from.getType() == Material.IRON_DOOR_BLOCK || from.getType() == Material.WOODEN_DOOR)
-						{
-							Block above = from.getBlock().getRelative(BlockFace.UP);
-							Block below = from.getBlock().getRelative(BlockFace.DOWN);
-							if(above.getType() == Material.IRON_DOOR_BLOCK || above.getType() == Material.WOODEN_DOOR)
-							{
-								from.getBlock().setType(Material.AIR);
-								above.setType(Material.AIR);
-								it.remove();
-								continue;
-							}
-							else if(below.getType() == Material.IRON_DOOR_BLOCK || below.getType() == Material.WOODEN_DOOR)
-							{
-								below.setType(Material.AIR);
-								from.getBlock().setType(Material.AIR);
-								toPlaceLater.remove(toAdd);
-								it.remove();
-								continue;
-							}
-						}
-						from.getBlock().setType(Material.AIR);
-						it.remove();
-					}
-				}
-			}
-		}
-		
-		//Move solid blocks down
-		MoveDown(world, toPlaceLater, blocksWeCanMove, yLevels, blockList);
-	}
-
-	public int FindMovingSpaceDown(Vector<Integer> yLevels, HashMap<Integer, HashMap<Location, BlockState>> blockList, World world) 
-	{
-		Map<ColumnCoord, Integer> minima = new HashMap<ColumnCoord, Integer>();
-		Map<ColumnCoord, Integer> maxima = new HashMap<ColumnCoord, Integer>();
-		
-		Iterator<Integer> yiterator = yLevels.iterator();
-		while (yiterator.hasNext()) 
-		{
-			Iterator<Entry<Location, BlockState>> xziterator = blockList.get(yiterator.next()).entrySet().iterator();
-			while (xziterator.hasNext()) 
-			{
-				BlockState block = xziterator.next().getValue();
-				ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
-				Integer min = minima.get(coord);
-				Integer max = maxima.get(coord);
-				if(min == null) 
-				{	
-					minima.put(coord, block.getY());
-					maxima.put(coord, block.getY());
-				} 
-				else 
-				{
-					minima.put(coord, Math.min(min, block.getY()));
-					maxima.put(coord, Math.max(max, block.getY()));
-				}
-			}
-		}
+				Block currentBlock = world.getBlockAt(currentLocation.getX(), currentLocation.getY(), currentLocation.getZ());
 				
-		int currentMaxFall = Integer.MAX_VALUE;
-		for(Map.Entry<ColumnCoord, Integer> entry : maxima.entrySet()) 
-        {
-			int minY = minima.get(entry.getKey());
-			int maxY = entry.getValue();
-			for(int currentY = maxY; currentY >= minY; currentY--)
-			{
-				if(world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType() == Material.AIR)
+				//getServer().getPlayer("gustav9797").sendMessage("checked: " + currentBlock + " hasblock: " + structure.HasBlock(currentLocation));
+				if(!structure.HasBlock(currentLocation) && currentBlock.getType() != Material.AIR)
 				{
-					int tempCurrentMaxFall = 0;
-					for(int y = currentY - 1; true; y--)
-					{
-						if(world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType() == Material.AIR)
-						{
-							tempCurrentMaxFall++;
-						}
-						else if(yLevels.contains(y) && blockList.get(y).containsKey(new Location(entry.getKey().x, y, entry.getKey().z)))
-						{
-							currentY = y;
-							break;
-						}
-						else
-						{
-							currentMaxFall = Math.min(tempCurrentMaxFall, currentMaxFall);
-							//currentY = y;
-							int tempY = 0;
-							for(tempY = y; tempY >= minY; tempY--)
-							{
-								if(yLevels.contains(tempY) && blockList.get(tempY).containsKey(new Location(entry.getKey().x, tempY, entry.getKey().z)))
-								{
-									currentY = tempY;
-									break;
-								}
-							}
-							break;
-						}
-						
-					}
+					structure.AddBlock(currentBlock.getState(), currentLocation);
+					blocksToCheck.add(currentLocation);
+					structure.totalBlocks++;
+					//getServer().getPlayer("gustav9797").sendMessage("added a block");
 				}
 			}
-        }
-		return currentMaxFall;
-	}
 
-	public void MoveDown(World world, Queue<Pair<BlockState, Block>> toPlaceLater, int blocksWeCanMove, Vector<Integer> yLevels, HashMap<Integer, HashMap<Location, BlockState>> blockList)
-	{
-		//Move solid blocks down
-		Iterator<Integer> i = yLevels.iterator();
-		while (i.hasNext()) 
-		{
-			int currentLayerY = (int)i.next();
-			if (blockList.containsKey(currentLayerY)) 
+			if (structure.totalBlocks >= blockLimit)
 			{
-				Iterator<Entry<Location, BlockState>> it = blockList.get(currentLayerY).entrySet().iterator();
-				while (it.hasNext()) 
-				{
-					Entry<Location, BlockState> pair = it.next();		
-					BlockState from = ((BlockState) pair.getValue());
-					BlockState fromState = from;
-					Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - blocksWeCanMove, from.getLocation().getBlockZ());
-					to.setType(from.getType());
-					to.setData(from.getBlock().getData());
-					switch(from.getType())
-					{
-						case CHEST: case TRAPPED_CHEST:
-						{	
-							Chest fromChest = (Chest) fromState;
-							Chest toChest = (Chest) to.getState();
-							Inventory fromInventory = fromChest.getInventory();
-							Inventory toInventory = toChest.getInventory();
-							toInventory.setContents(fromInventory.getContents());
-							fromInventory.clear();
-							break;
-						}
-						case FURNACE: case BURNING_FURNACE:
-						{
-							Furnace fromFurnace = (Furnace) fromState;
-							Furnace toFurnace = (Furnace) to.getState();
-							Inventory fromInventory = fromFurnace.getInventory();
-							Inventory toInventory = toFurnace.getInventory();						
-							toInventory.setContents(fromInventory.getContents());
-							toFurnace.setBurnTime(fromFurnace.getBurnTime());
-							toFurnace.setCookTime(fromFurnace.getCookTime());
-							fromInventory.clear();
-							break;
-						}
-						case HOPPER:
-						{
-							Hopper fromHopper = (Hopper) fromState;
-							Hopper toHopper = (Hopper) to.getState();
-							Inventory fromInventory = fromHopper.getInventory();
-							Inventory toInventory = toHopper.getInventory();
-							toInventory.setContents(fromInventory.getContents());
-							fromInventory.clear();
-							break;
-						}
-						case DROPPER:
-						{
-							Dropper fromDropper = (Dropper) fromState;
-							Dropper toDropper = (Dropper) to.getState();
-							Inventory fromInventory = fromDropper.getInventory();
-							Inventory toInventory = toDropper.getInventory();
-							toInventory.setContents(fromInventory.getContents());
-							fromInventory.clear();
-							break;
-						}
-						case BEACON:
-						{
-							Beacon fromBeacon = (Beacon) fromState;
-							Beacon toBeacon = (Beacon) to.getState();
-							Inventory fromInventory = fromBeacon.getInventory();
-							Inventory toInventory = toBeacon.getInventory();
-							toInventory.setContents(fromInventory.getContents());
-							fromInventory.clear();
-							break;
-						}
-						case DISPENSER:
-						{
-							Dispenser fromDispenser = (Dispenser) fromState;
-							Dispenser toDispenser = (Dispenser) to.getState();
-							Inventory fromInventory = fromDispenser.getInventory();
-							Inventory toInventory = toDispenser.getInventory();
-							toInventory.setContents(fromInventory.getContents());
-							fromInventory.clear();
-							break;
-						}
-						case JUKEBOX:
-						{
-							Jukebox fromJukebox = (Jukebox) fromState;
-							Jukebox toJukebox = (Jukebox) to.getState();
-							if(fromJukebox.isPlaying())
-							{
-								toJukebox.setPlaying(fromJukebox.getPlaying());
-							}
-							fromJukebox.setPlaying(null);
-							break;
-						}
-						case NOTE_BLOCK:
-						{
-							NoteBlock fromNoteBlock = (NoteBlock) fromState;
-							NoteBlock toNoteBlock = (NoteBlock) to.getState();
-							toNoteBlock.setNote(fromNoteBlock.getNote());
-							break;
-						}
-						case PISTON_BASE: case PISTON_STICKY_BASE:
-						{
-							PistonBaseMaterial fromPiston = (PistonBaseMaterial) fromState.getData();
-							PistonBaseMaterial toPiston = (PistonBaseMaterial) to.getState().getData();
-							toPiston.setFacingDirection(fromPiston.getFacing());
-							toPiston.setPowered(fromPiston.isPowered());
-							break;
-						}
-						default:
-							break;
-					}
-					from.getBlock().setType(Material.AIR);
-				}
+				return;
 			}
 		}
+		//getServer().getPlayer("gustav9797").sendMessage("tot " + structure.totalBlocks);
 		
-		//Place all non-solid blocks back
-		Iterator<Pair<BlockState, Block>> lastIterator = toPlaceLater.iterator();
-		while(lastIterator.hasNext())
-		{
-			Pair<BlockState, Block> current = lastIterator.next();
-			BlockState fromState = current.getFirst();
-			Block to = current.getSecond();
-			if(fromState.getType() != Material.WOODEN_DOOR && fromState.getType() != Material.IRON_DOOR_BLOCK)
-			{
-				boolean hasBlockToSitOn = false;
-				for(int j = 0; j < adjacentBlocks.length; j++)
-				{
-					Block toCheck = world.getBlockAt(to.getX() + adjacentBlocks[j].getX(), to.getY() + adjacentBlocks[j].getY(), to.getZ() + adjacentBlocks[j].getZ());
-					if(toCheck.getType() != Material.AIR && !annoyingBlocks.contains(toCheck.getType()))
-					{
-						hasBlockToSitOn = true;
-						break;
-					}
-				}
-				if(!hasBlockToSitOn)
-				{
-					to.setType(Material.AIR);
-					continue;
-				}
-				to.setType(fromState.getType());
-				to.setData(fromState.getBlock().getData());
-			}
-
-			switch(fromState.getType())
-			{
-				case TORCH:
-				{
-					Torch fromTorch = (Torch) fromState.getData();
-					Torch toTorch = (Torch) to.getState().getData();
-					toTorch.setFacingDirection(fromTorch.getFacing());
-					break;
-				}
-				case SIGN_POST: case WALL_SIGN:
-				{					
-					Sign fromSign = (Sign) fromState;
-					Sign toSign = (Sign) to.getState();			
-					org.bukkit.material.Sign fromSignMat = (org.bukkit.material.Sign) fromSign.getData();
-					toSign.setData(fromSignMat);							
-					String[] fromLines = fromSign.getLines();
-					for(int index = 0; index < fromLines.length; index++)
-					{
-						toSign.setLine(index, fromLines[index]);
-					}
-					toSign.update();
-					break;
-				}
-				case TRAP_DOOR:
-				{
-					TrapDoor fromTrapDoor = (TrapDoor) fromState.getData();
-					TrapDoor toTrapDoor = (TrapDoor) to.getState().getData();
-					toTrapDoor.setOpen(fromTrapDoor.isOpen());
-					break;
-				}
-				case WOODEN_DOOR:
-				{
-					Block top = to.getRelative(BlockFace.UP, 1);
-					if(top.getRelative(BlockFace.DOWN).getType() == Material.WOODEN_DOOR)
-						break;
-
-					to.setType(Material.WOODEN_DOOR);
-					to.setData(fromState.getBlock().getData());
-
-					top.setType(Material.WOODEN_DOOR);
-					top.setData((byte) 8);
-					
-					//Now check if it's a double-door or single-door
-					int directionFacing = to.getData();
-					switch(directionFacing)
-					{
-						case 0: //Door is facing west
-						{
-							Block b = top.getRelative(BlockFace.NORTH);
-							if(b.getType() == Material.WOODEN_DOOR)
-								top.setData((byte) 9);
-							break;
-						}
-						case 1: //Door is facing north
-						{
-							Block b = top.getRelative(BlockFace.EAST);
-							if(b.getType() == Material.WOODEN_DOOR)
-								top.setData((byte) 9);
-							break;
-						}
-						case 2: //Door is facing east
-						{
-							Block b = top.getRelative(BlockFace.SOUTH);
-							if(b.getType() == Material.WOODEN_DOOR)
-								top.setData((byte) 9);
-							break;
-						}
-						case 3: //Door is facing south
-						{
-							Block b = top.getRelative(BlockFace.WEST);
-							if(b.getType() == Material.WOODEN_DOOR)
-								top.setData((byte) 9);
-							break;
-						}
-					}
-					break;
-				}
-				case IRON_DOOR_BLOCK:
-				{
-					Block top = to.getRelative(BlockFace.UP, 1);
-					if(top.getRelative(BlockFace.DOWN).getType() == Material.IRON_DOOR_BLOCK)
-						break;
-
-					to.setType(Material.IRON_DOOR_BLOCK);
-					to.setData(fromState.getBlock().getData());
-
-					top.setType(Material.IRON_DOOR_BLOCK);
-					top.setData((byte)8);
-					
-					//Now check if it's a double-door or single-door
-					int directionFacing = to.getData();
-					switch(directionFacing)
-					{
-						case 0: //Door is facing west
-						{
-							Block b = top.getRelative(BlockFace.NORTH);
-							if(b.getType() == Material.IRON_DOOR_BLOCK)
-								top.setData((byte) 9);
-							break;
-						}
-						case 1: //Door is facing north
-						{
-							Block b = top.getRelative(BlockFace.EAST);
-							if(b.getType() == Material.IRON_DOOR_BLOCK)
-								top.setData((byte) 9);
-							break;
-						}
-						case 2: //Door is facing east
-						{
-							Block b = top.getRelative(BlockFace.SOUTH);
-							if(b.getType() == Material.IRON_DOOR_BLOCK)
-								top.setData((byte) 9);
-							break;
-						}
-						case 3: //Door is facing south
-						{
-							Block b = top.getRelative(BlockFace.WEST);
-							if(b.getType() == Material.IRON_DOOR_BLOCK)
-								top.setData((byte) 9);
-							break;
-						}
-					}
-					break;
-				}
-				default:
-					break;
-			}
-		}
-
+		structureHandler.AddStructure(structure);
+		//structure.SortLevels();
+		//structure.StoreNonSolidBlocks();
+		//structure.MoveOneDown(world);
 	}
-}
 
-class GravityBlockBreak extends BukkitRunnable
-{
-	Block startBlock;
-	MehGravity plugin;
-	public GravityBlockBreak(MehGravity plugin, Block startBlock)
-	{
-		this.startBlock = startBlock;
-		this.plugin = plugin;
-	}
-	
-	@Override
-	public void run() 
-	{
-		for(int i = 0; i < 6; i++)
-		{
-			Block currentBlock = startBlock.getWorld().getBlockAt(
-					startBlock.getX() + MehGravity.adjacentBlocks[i].getX(), 
-					startBlock.getY() + MehGravity.adjacentBlocks[i].getY(), 
-					startBlock.getZ() + MehGravity.adjacentBlocks[i].getZ());
-			
-			if(currentBlock.getType() != Material.AIR)
-				plugin.BeginGravity(currentBlock);
-		}
-	}
-}
-
-//// Utility
-class ColumnCoord 
-{
-
-    public final int x;
-    public final int z;
-
-    public ColumnCoord(int x, int z) 
-    {
-        this.x = x;
-        this.z = z;
-    }
-
-    @Override
-    public boolean equals(Object o) 
-    {
-        if (this == o) return true;
-        if (!(o instanceof ColumnCoord)) return false;
-        ColumnCoord key = (ColumnCoord) o;
-        return x == key.x && z == key.z;
-    }
-
-    @Override
-    public int hashCode() 
-    {
-        int result = x;
-        result = 31 * result + z;
-        return result;
-    }
 }
