@@ -8,23 +8,26 @@ class GravityCheckAroundLater extends BukkitRunnable
 {
 	Block startBlock;
 	MehGravity plugin;
+
 	public GravityCheckAroundLater(MehGravity plugin, Block startBlock)
 	{
 		this.startBlock = startBlock;
 		this.plugin = plugin;
 	}
-	
-	@Override 
+
+	@Override
 	public void run()
 	{
-		for(int i = 0; i < 6; i++)
+		for (int i = 0; i < 6; i++)
 		{
-			Block currentBlock = startBlock.getWorld().getBlockAt(
-					startBlock.getX() + MehGravity.adjacentBlocks[i].getX(), 
-					startBlock.getY() + MehGravity.adjacentBlocks[i].getY(), 
-					startBlock.getZ() + MehGravity.adjacentBlocks[i].getZ());	
-			if(currentBlock.getType() != Material.AIR)
-				plugin.BeginGravity(currentBlock);
+			Block currentBlock = startBlock.getWorld().getBlockAt(startBlock.getX() + MehGravity.adjacentBlocks[i].getX(), startBlock.getY() + MehGravity.adjacentBlocks[i].getY(),
+					startBlock.getZ() + MehGravity.adjacentBlocks[i].getZ());
+			if (currentBlock.getType() != Material.AIR)
+			{
+				Structure structure = plugin.structureHandler.CreateStructure(currentBlock);
+				if (structure != null)
+					plugin.structureHandler.AddStructure(structure);
+			}
 		}
-	}			
+	}
 }

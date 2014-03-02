@@ -17,3 +17,9 @@ gravityWorlds:
 #  - WorldName1
 #  - WorldName2
 #  - OtherWorldsJustContinueLikeThis
+staticBlocks:
+   - BEDROCK
+#staticBlocks:	(Block materials that won't fall down, any structure connected to these won't fall) (CAPS needed)
+#  - BEDROCK
+#  - SPONGE
+#

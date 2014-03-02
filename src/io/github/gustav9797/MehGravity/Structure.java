@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Vector;
 import java.util.Map.Entry;
 import java.util.Queue;
 
@@ -50,6 +49,16 @@ public class Structure
 		this.world = world;
 	}
 
+	public StructureBlock getExampleBlock()
+	{
+		Iterator<Entry<Location, StructureBlock>> i = blocks.entrySet().iterator();
+		while (i.hasNext())
+		{
+			return i.next().getValue();
+		}
+		return null;
+	}
+
 	public void AddBlock(BlockState blockState, Location location)
 	{
 		if (!blocks.containsKey(location))
@@ -77,7 +86,6 @@ public class Structure
 				StructureBlock current = i.next().getValue();
 				if (current.location.getY() == y)
 				{
-					// System.out.println("added a block to YLEVEL " + y);
 					sortedLevelBlocks.add(current);
 				}
 			}
@@ -132,7 +140,7 @@ public class Structure
 		while (it.hasNext())
 		{
 
-			//BlockState block = it.next().getValue().originalBlock;
+			// BlockState block = it.next().getValue().originalBlock;
 			Location block = it.next().getKey();
 			ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
 			Integer min = minima.get(coord);
@@ -173,7 +181,6 @@ public class Structure
 						else
 						{
 							currentMaxFall = Math.min(tempCurrentMaxFall, currentMaxFall);
-							// currentY = y;
 							int tempY = 0;
 							for (tempY = y; tempY >= minY; tempY--)
 							{
@@ -188,29 +195,26 @@ public class Structure
 
 					}
 				}
-				else if(blocks.containsKey(new Location(entry.getKey().x, currentY, entry.getKey().z)))
+				else if (blocks.containsKey(new Location(entry.getKey().x, currentY, entry.getKey().z)))
 				{
-					if(!blocks.containsKey(new Location(entry.getKey().x, currentY - 1, entry.getKey().z)))
+					if (!blocks.containsKey(new Location(entry.getKey().x, currentY - 1, entry.getKey().z)))
 					{
-						//System.out.println("returned 0, found exotic block");
 						return 0;
 					}
 				}
 			}
 		}
-		if(currentMaxFall > 1024)
+		if (currentMaxFall > 1024)
 		{
-			//System.out.println("returned 0, over limit maxfall");
 			return 0;
 		}
 		return currentMaxFall;
 	}
 
+	@SuppressWarnings("deprecation")
 	public void MoveOneDown(World world)
 	{
 		// Move solid blocks down
-		// for(int currentLayerY = yMin; currentLayerY <= yMax; currentLayerY++)
-		// {
 		Iterator<StructureBlock> i = sortedLevelBlocks.iterator();
 		while (i.hasNext())
 		{
@@ -491,8 +495,8 @@ public class Structure
 			it.remove();
 			Location l = entry.getKey();
 			l.setY(l.getY() - 1);
-			//l = entry.getValue().location;
-			//l.setY(l.getY() - 1);
+			// l = entry.getValue().location;
+			// l.setY(l.getY() - 1);
 			entry.getValue().originalBlock = world.getBlockAt(l.getX(), l.getY(), l.getZ()).getState();
 			temp.put(l, entry.getValue());
 		}

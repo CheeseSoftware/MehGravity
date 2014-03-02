@@ -8,16 +8,21 @@ class GravityCheckLater extends BukkitRunnable
 {
 	Block startBlock;
 	MehGravity plugin;
+
 	public GravityCheckLater(MehGravity plugin, Block startBlock)
 	{
 		this.startBlock = startBlock;
 		this.plugin = plugin;
 	}
-	
+
 	@Override
-	public void run() 
+	public void run()
 	{
-		if(startBlock.getType() != Material.AIR)
-			plugin.BeginGravity(startBlock);
+		if (startBlock.getType() != Material.AIR)
+		{
+			Structure structure = plugin.structureHandler.CreateStructure(startBlock);
+			if (structure != null)
+				plugin.structureHandler.AddStructure(structure);
+		}
 	}
 }
