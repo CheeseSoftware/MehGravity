@@ -23,3 +23,5 @@ staticBlocks:
 #  - BEDROCK
 #  - SPONGE
 #
+useMetrics: true
+#Used to disable metrics

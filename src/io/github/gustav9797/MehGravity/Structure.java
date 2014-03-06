@@ -319,6 +319,13 @@ public class Structure
 						toPiston.setPowered(fromPiston.isPowered());
 						break;
 					}
+					/*case FLOWER_POT:
+					{
+						FlowerPot fromFlowerPot = (FlowerPot) fromState.getData();
+						FlowerPot toFlowerPot = (FlowerPot) to.getState().getData();
+						toFlowerPot.setContents(fromFlowerPot.getContents());
+						break;
+					}*/
 					default:
 						break;
 				}

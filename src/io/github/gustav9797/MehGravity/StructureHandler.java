@@ -18,7 +18,7 @@ public class StructureHandler
 	{
 		this.plugin = plugin;
 		structures = new HashMap<Integer, Structure>();
-		new UpdateStructures(plugin, this).runTaskTimer(plugin, 0, 1);
+		plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new UpdateStructures(plugin, this), 1, 1);
 	}
 
 	public int GetFreeStructureId()

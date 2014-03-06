@@ -14,20 +14,25 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
 
 public final class MehGravity extends JavaPlugin implements Listener
 {
-	static int blockLimit = 2000;
-	static List<Material> staticBlocks;
-	static List<String> gravityWorlds;
-	private File configFile = null;
+	public static int blockLimit = 2000;
+	public static List<Material> staticBlocks;
+	public static List<String> gravityWorlds;
 	public StructureHandler structureHandler;
+
+	private File configFile = null;
+	private boolean useMetrics = false;
+	private Metrics metrics;
 
 	public void onEnable()
 	{
@@ -50,14 +55,21 @@ public final class MehGravity extends JavaPlugin implements Listener
 		}
 		this.Load();
 
-		try
+		if (this.useMetrics)
 		{
-			Metrics metrics = new Metrics(this);
-			metrics.start();
+			try
+			{
+				this.metrics = new Metrics(this);
+				this.metrics.start();
+				this.getLogger().info("Metrics enabled");
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 		}
-		catch (IOException e)
-		{
-		}
+		else
+			this.getLogger().info("Metrics is not used");
 
 	}
 
@@ -72,16 +84,17 @@ public final class MehGravity extends JavaPlugin implements Listener
 		try
 		{
 			config.load(configFile);
+			this.useMetrics = config.getBoolean("useMetrics");
 			MehGravity.blockLimit = config.getInt("blocklimit");
 			MehGravity.gravityWorlds = config.getStringList("gravityWorlds");
 			MehGravity.staticBlocks = new ArrayList<Material>();
 			List<String> temp = config.getStringList("staticBlocks");
-			if(temp != null)
+			if (temp != null)
 			{
-				for(String s : temp)
+				for (String s : temp)
 				{
 					Material m = Material.getMaterial(s);
-					if(m != null)
+					if (m != null)
 						MehGravity.staticBlocks.add(m);
 				}
 			}
@@ -97,10 +110,11 @@ public final class MehGravity extends JavaPlugin implements Listener
 		YamlConfiguration config = new YamlConfiguration();
 		try
 		{
+			config.set("useMetrics", this.useMetrics);
 			config.set("blocklimit", MehGravity.blockLimit);
 			config.set("gravityWorlds", MehGravity.gravityWorlds);
 			List<String> temp = new ArrayList<String>();
-			for(Material m : MehGravity.staticBlocks)
+			for (Material m : MehGravity.staticBlocks)
 				temp.add(m.name());
 			config.set("staticBlocks", temp);
 			config.save(configFile);
@@ -122,6 +136,8 @@ public final class MehGravity extends JavaPlugin implements Listener
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event)
 	{
+		if (event.getBlock().getType() == Material.FLOWER_POT)
+			event.setCancelled(true);
 		if (HasPerms(event.getPlayer()))
 			CheckAround(event.getBlock(), 0);
 	}
@@ -161,6 +177,24 @@ public final class MehGravity extends JavaPlugin implements Listener
 		Block toCheck = base.getWorld().getBlockAt(
 				new org.bukkit.Location(base.getWorld(), base.getX() + event.getDirection().getModX(), base.getY() + event.getDirection().getModY(), base.getZ() + event.getDirection().getModZ()));
 		CheckAround(toCheck, 10);
+	}
+
+	@EventHandler
+	public void onEntityChangeBlock(EntityChangeBlockEvent event)
+	{
+		// Prevent sand and gravel from falling
+		event.setCancelled(true);
+	}
+
+	@EventHandler
+	public void onBlockPhysics(BlockPhysicsEvent event)
+	{
+		// Prevent cactus dupe bug
+		Material type = event.getChangedType();
+		// Bukkit.getServer().getPlayer("gustav9797").sendMessage(type.toString());
+		// if (MehGravity.annoyingBlocks.contains(type))
+		if (type == Material.CACTUS)
+			event.setCancelled(true);
 	}
 
 	public boolean HasPerms(Player player)
@@ -235,6 +269,8 @@ public final class MehGravity extends JavaPlugin implements Listener
 			add(Material.DETECTOR_RAIL);
 			add(Material.ACTIVATOR_RAIL);
 			add(Material.TRIPWIRE);
+			add(Material.FLOWER_POT);
+			add(Material.CACTUS);
 		}
 	};
 }
