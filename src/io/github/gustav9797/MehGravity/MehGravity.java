@@ -191,8 +191,6 @@ public final class MehGravity extends JavaPlugin implements Listener
 	{
 		// Prevent cactus dupe bug
 		Material type = event.getChangedType();
-		// Bukkit.getServer().getPlayer("gustav9797").sendMessage(type.toString());
-		// if (MehGravity.annoyingBlocks.contains(type))
 		if (type == Material.CACTUS)
 			event.setCancelled(true);
 	}
