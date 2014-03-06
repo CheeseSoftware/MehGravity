@@ -219,16 +219,16 @@ public class Structure
 		while (i.hasNext())
 		{
 			StructureBlock current = i.next();
-			boolean contains = false;
+			boolean sensitive = false;
 			for(Location l : sensitiveBlocks)
 			{
 				if(l.equals(current.location))
 				{
-					contains = true;
+					sensitive = true;
 					break;
 				}
 			}
-			if (!contains)
+			if (!sensitive)
 			{
 				BlockState from = current.originalBlock;
 				BlockState fromState = from;
@@ -328,13 +328,6 @@ public class Structure
 						toPiston.setPowered(fromPiston.isPowered());
 						break;
 					}
-					/*case FLOWER_POT:
-					{
-						FlowerPot fromFlowerPot = (FlowerPot) fromState.getData();
-						FlowerPot toFlowerPot = (FlowerPot) to.getState().getData();
-						toFlowerPot.setContents(fromFlowerPot.getContents());
-						break;
-					}*/
 					default:
 						break;
 				}
@@ -365,6 +358,7 @@ public class Structure
 				if (!hasBlockToSitOn)
 				{
 					to.setType(Material.AIR);
+					i.remove();
 					continue;
 				}
 				to.setType(fromState.getType());

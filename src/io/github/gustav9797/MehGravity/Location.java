@@ -20,22 +20,26 @@ public class Location
 	}
 
 	@Override
-	public boolean equals(Object o)
+	public boolean equals(Object other)
 	{
-		if (this == o)
-			return true;
-		if (!(o instanceof Location))
+		if (other == null)
 			return false;
-		Location key = (Location) o;
-		return x_ == key.x_ && y_ == key.y_ && z_ == key.z_;
+		if (other == this)
+			return true;
+		if (!(other instanceof Location))
+			return false;
+		Location l = (Location) other;
+		return x_ == l.x_ && y_ == l.y_ && z_ == l.z_;
 	}
 
 	@Override
 	public int hashCode()
 	{
-		int result = x_;
-		result = 31 * result + 1024 * y_ + z_;
-		return result;
+		int hash = 59;
+		hash = hash * 23 + x_;
+	    hash = hash * 23 + y_ * 1337;
+	    hash = hash * 23 + z_ * 133737;
+		return hash;
 	}
 
 	public int getX()
