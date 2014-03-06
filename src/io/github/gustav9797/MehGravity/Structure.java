@@ -219,7 +219,16 @@ public class Structure
 		while (i.hasNext())
 		{
 			StructureBlock current = i.next();
-			if (!sensitiveBlocks.contains(current))
+			boolean contains = false;
+			for(Location l : sensitiveBlocks)
+			{
+				if(l.equals(current.location))
+				{
+					contains = true;
+					break;
+				}
+			}
+			if (!contains)
 			{
 				BlockState from = current.originalBlock;
 				BlockState fromState = from;
@@ -338,7 +347,7 @@ public class Structure
 		while (i.hasNext())
 		{
 			StructureBlock current = i.next();
-			BlockState fromState = blocks.get(current).originalBlock;
+			BlockState fromState = blocks.get(current.location).originalBlock;
 			Block to = world.getBlockAt(current.location.getX(), current.location.getY() - 1, current.location.getZ());
 			if (fromState.getType() != Material.WOODEN_DOOR && fromState.getType() != Material.IRON_DOOR_BLOCK)
 			{
@@ -371,6 +380,7 @@ public class Structure
 					toTorch.setFacingDirection(fromTorch.getFacing());
 					break;
 				}
+				case SIGN:
 				case SIGN_POST:
 				case WALL_SIGN:
 				{

@@ -238,7 +238,6 @@ public final class MehGravity extends JavaPlugin implements Listener
 			add(Material.WATER_LILY);
 			add(Material.CARPET);
 			add(Material.PAINTING);
-			add(Material.SIGN);
 			add(Material.SIGN_POST);
 			add(Material.WALL_SIGN);
 			add(Material.BED);
