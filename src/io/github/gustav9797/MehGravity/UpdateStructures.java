@@ -62,7 +62,7 @@ class UpdateStructures extends BukkitRunnable
 			}
 			catch (NoSuchElementException | IllegalStateException | ConcurrentModificationException e)
 			{
-
+				plugin.getServer().getLogger().warning("Weird exception happened.");
 			}
 		}
 	}
