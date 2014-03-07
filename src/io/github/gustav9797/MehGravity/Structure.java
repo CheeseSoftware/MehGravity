@@ -175,7 +175,7 @@ public class Structure
 						}
 						else if (blocks.containsKey(new Location(entry.getKey().x, y, entry.getKey().z)))
 						{
-							currentY = y;
+							currentY = y + 1;
 							break;
 						}
 						else
