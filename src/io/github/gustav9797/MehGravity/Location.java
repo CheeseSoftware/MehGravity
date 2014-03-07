@@ -35,11 +35,7 @@ public class Location
 	@Override
 	public int hashCode()
 	{
-		int hash = 59;
-		hash = hash * 23 + x_;
-	    hash = hash * 23 + y_ * 1337;
-	    hash = hash * 23 + z_ * 133737;
-		return hash;
+		return x_ ^ y_ * 137 ^ z_ * 11317;
 	}
 
 	public int getX()

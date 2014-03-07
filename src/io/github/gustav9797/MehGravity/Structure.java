@@ -219,7 +219,7 @@ public class Structure
 		while (i.hasNext())
 		{
 			StructureBlock current = i.next();
-			boolean sensitive = false;
+			/*boolean sensitive = false;
 			for(Location l : sensitiveBlocks)
 			{
 				if(l.equals(current.location))
@@ -228,7 +228,8 @@ public class Structure
 					break;
 				}
 			}
-			if (!sensitive)
+			if (!sensitive)*/
+			if(!sensitiveBlocks.contains(current.location))
 			{
 				BlockState from = current.originalBlock;
 				BlockState fromState = from;
