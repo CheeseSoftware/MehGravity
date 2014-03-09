@@ -22,6 +22,7 @@ import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
+import org.mcstats.Metrics.Graph;
 
 public final class MehGravity extends JavaPlugin implements Listener
 {
@@ -60,6 +61,18 @@ public final class MehGravity extends JavaPlugin implements Listener
 			try
 			{
 				this.metrics = new Metrics(this);
+				Graph versionGraph = this.metrics.createGraph("MehGravity Version");
+				
+				versionGraph.addPlotter(new Metrics.Plotter(this.getDescription().getVersion())
+				{
+					@Override
+					public int getValue()
+					{
+						return 1;
+					}
+
+				});
+				
 				this.metrics.start();
 				this.getLogger().info("Metrics enabled");
 			}
@@ -136,8 +149,6 @@ public final class MehGravity extends JavaPlugin implements Listener
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event)
 	{
-		if (event.getBlock().getType() == Material.FLOWER_POT)
-			event.setCancelled(true);
 		if (HasPerms(event.getPlayer()))
 			CheckAround(event.getBlock(), 0);
 	}
@@ -268,6 +279,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 			add(Material.TRIPWIRE);
 			add(Material.FLOWER_POT);
 			add(Material.CACTUS);
+			add(Material.SKULL);
 		}
 	};
 }

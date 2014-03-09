@@ -22,6 +22,7 @@ import org.bukkit.block.Hopper;
 import org.bukkit.block.Jukebox;
 import org.bukkit.block.NoteBlock;
 import org.bukkit.block.Sign;
+import org.bukkit.block.Skull;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.material.PistonBaseMaterial;
 import org.bukkit.material.Torch;
@@ -122,7 +123,6 @@ public class Structure
 					{
 						below.setType(Material.AIR);
 						current.originalBlock.getBlock().setType(Material.AIR);
-						sensitiveBlocks.remove(current.location);
 						continue;
 					}
 				}
@@ -219,17 +219,7 @@ public class Structure
 		while (i.hasNext())
 		{
 			StructureBlock current = i.next();
-			/*boolean sensitive = false;
-			for(Location l : sensitiveBlocks)
-			{
-				if(l.equals(current.location))
-				{
-					sensitive = true;
-					break;
-				}
-			}
-			if (!sensitive)*/
-			if(!sensitiveBlocks.contains(current.location))
+			if (!sensitiveBlocks.contains(current.location))
 			{
 				BlockState from = current.originalBlock;
 				BlockState fromState = from;
@@ -238,6 +228,13 @@ public class Structure
 				to.setData(from.getBlock().getData());
 				switch (from.getType())
 				{
+					case REDSTONE_TORCH_ON:
+					{
+						// Set it to air to make it forcefully be placed back
+						// and trigger redstone
+						to.setType(Material.AIR);
+						break;
+					}
 					case CHEST:
 					case TRAPPED_CHEST:
 					{
@@ -342,6 +339,10 @@ public class Structure
 		{
 			StructureBlock current = i.next();
 			BlockState fromState = blocks.get(current.location).originalBlock;
+			Location aboveLocation = new Location(current.location.getX(), current.location.getY() + 1, current.location.getZ());
+			BlockState fromStateAbove = null;
+			if (blocks.containsKey(aboveLocation))
+				fromStateAbove = blocks.get(aboveLocation).originalBlock;
 			Block to = world.getBlockAt(current.location.getX(), current.location.getY() - 1, current.location.getZ());
 			if (fromState.getType() != Material.WOODEN_DOOR && fromState.getType() != Material.IRON_DOOR_BLOCK)
 			{
@@ -362,12 +363,32 @@ public class Structure
 					i.remove();
 					continue;
 				}
+				// if(fromState.getType() == Material.FLOWER_POT)
+				// ((FlowerPot)fromState.getData()).setContents(null);
 				to.setType(fromState.getType());
 				to.setData(fromState.getBlock().getData());
 			}
 
 			switch (fromState.getType())
 			{
+				case SKULL:
+				{
+					Skull toSkull = (Skull)to.getState();
+					Skull fromSkull = (Skull)fromState;
+					//toSkull.getBlock().setData(fromSkull.getData().getData());
+					toSkull.setRotation(fromSkull.getRotation());
+					toSkull.setSkullType(fromSkull.getSkullType());
+					toSkull.update();
+					break;
+				}
+				case FLOWER_POT:
+				{
+					//I give up with flower pots
+					
+					//FlowerPot toFlowerPot =(FlowerPot)to.getState().getData();
+					//toFlowerPot.setContents(new MaterialData(Material.RED_ROSE));
+					break;
+				}
 				case TORCH:
 				{
 					Torch fromTorch = (Torch) fromState.getData();
@@ -404,13 +425,14 @@ public class Structure
 					if (top.getRelative(BlockFace.DOWN).getType() == Material.WOODEN_DOOR)
 						break;
 
-					to.setType(Material.WOODEN_DOOR);
-					to.setData(fromState.getBlock().getData());
-
 					top.setType(Material.WOODEN_DOOR);
-					top.setData((byte) 8);
+					if (fromStateAbove != null)
+						top.setData(fromStateAbove.getData().getData());
 
-					// Now check if it's a double-door or single-door
+					to.setType(Material.WOODEN_DOOR);
+					to.setData(fromState.getData().getData());
+
+					// Now check if it's a double-door
 					int directionFacing = to.getData();
 					switch (directionFacing)
 					{
