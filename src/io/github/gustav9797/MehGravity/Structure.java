@@ -1,5 +1,6 @@
 package io.github.gustav9797.MehGravity;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -39,6 +40,65 @@ public class Structure
 	private Queue<StructureBlock> sortedLevelBlocks;
 	private Queue<Location> sensitiveBlocks;
 	public Date moveDate;
+
+	//Adjacent locations
+	static Location[] adjacentBlocks =
+	{ new Location(1, 0, 0), new Location(-1, 0, 0), new Location(0, 1, 0), new Location(0, -1, 0), new Location(0, 0, 1), new Location(0, 0, -1) };
+
+	// List of blocks that pop/break when a supporting block is removed
+	@SuppressWarnings("serial")
+	static final ArrayList<Material> annoyingBlocks = new ArrayList<Material>()
+	{
+		{
+			add(Material.WOODEN_DOOR);
+			add(Material.IRON_DOOR_BLOCK);
+			add(Material.TRAP_DOOR);
+			add(Material.TORCH);
+			add(Material.SAPLING);
+			add(Material.LONG_GRASS);
+			add(Material.YELLOW_FLOWER);
+			add(Material.RED_ROSE);
+			add(Material.BROWN_MUSHROOM);
+			add(Material.RED_MUSHROOM);
+			add(Material.LADDER);
+			add(Material.SNOW);
+			add(Material.VINE);
+			add(Material.WATER_LILY);
+			add(Material.CARPET);
+			add(Material.PAINTING);
+			add(Material.SIGN_POST);
+			add(Material.WALL_SIGN);
+			add(Material.BED);
+			add(Material.ITEM_FRAME);
+			add(Material.FLOWER_POT);
+			add(Material.LEVER);
+			add(Material.STONE_PLATE);
+			add(Material.WOOD_PLATE);
+			add(Material.REDSTONE_TORCH_OFF);
+			add(Material.REDSTONE_TORCH_ON);
+			add(Material.STONE_BUTTON);
+			add(Material.TRIPWIRE_HOOK);
+			add(Material.WOOD_BUTTON);
+			add(Material.GOLD_PLATE);
+			add(Material.IRON_PLATE);
+			add(Material.DAYLIGHT_DETECTOR);
+			add(Material.REDSTONE_WIRE);
+			add(Material.REDSTONE_COMPARATOR);
+			add(Material.REDSTONE_COMPARATOR_OFF);
+			add(Material.REDSTONE_COMPARATOR_ON);
+			add(Material.DIODE);
+			add(Material.DIODE_BLOCK_OFF);
+			add(Material.DIODE_BLOCK_ON);
+			add(Material.RAILS);
+			add(Material.POWERED_RAIL);
+			add(Material.DETECTOR_RAIL);
+			add(Material.ACTIVATOR_RAIL);
+			add(Material.TRIPWIRE);
+			add(Material.FLOWER_POT);
+			add(Material.CACTUS);
+			add(Material.SKULL);
+		}
+	};
 
 	public Structure(int id, World world)
 	{
@@ -106,7 +166,7 @@ public class Structure
 		{
 			StructureBlock current = i.next().getValue();
 
-			if (MehGravity.annoyingBlocks.contains(current.originalBlock.getType()))
+			if (Structure.annoyingBlocks.contains(current.originalBlock.getType()))
 			{
 				sensitiveBlocks.add(current.location);
 				if (current.originalBlock.getType() == Material.IRON_DOOR_BLOCK || current.originalBlock.getType() == Material.WOODEN_DOOR)
@@ -348,10 +408,10 @@ public class Structure
 			{
 				boolean hasBlockToSitOn = false;
 				// Make sure we don't place a sensitive block in the air
-				for (int j = 0; j < MehGravity.adjacentBlocks.length; j++)
+				for (int j = 0; j < Structure.adjacentBlocks.length; j++)
 				{
-					Block toCheck = world.getBlockAt(to.getX() + MehGravity.adjacentBlocks[j].getX(), to.getY() + MehGravity.adjacentBlocks[j].getY(), to.getZ() + MehGravity.adjacentBlocks[j].getZ());
-					if (toCheck.getType() != Material.AIR && !MehGravity.annoyingBlocks.contains(toCheck.getType()))
+					Block toCheck = world.getBlockAt(to.getX() + Structure.adjacentBlocks[j].getX(), to.getY() + Structure.adjacentBlocks[j].getY(), to.getZ() + Structure.adjacentBlocks[j].getZ());
+					if (toCheck.getType() != Material.AIR && !Structure.annoyingBlocks.contains(toCheck.getType()))
 					{
 						hasBlockToSitOn = true;
 						break;
@@ -373,9 +433,9 @@ public class Structure
 			{
 				case SKULL:
 				{
-					Skull toSkull = (Skull)to.getState();
-					Skull fromSkull = (Skull)fromState;
-					//toSkull.getBlock().setData(fromSkull.getData().getData());
+					Skull toSkull = (Skull) to.getState();
+					Skull fromSkull = (Skull) fromState;
+					// toSkull.getBlock().setData(fromSkull.getData().getData());
 					toSkull.setRotation(fromSkull.getRotation());
 					toSkull.setSkullType(fromSkull.getSkullType());
 					toSkull.update();
@@ -383,10 +443,12 @@ public class Structure
 				}
 				case FLOWER_POT:
 				{
-					//I give up with flower pots
-					
-					//FlowerPot toFlowerPot =(FlowerPot)to.getState().getData();
-					//toFlowerPot.setContents(new MaterialData(Material.RED_ROSE));
+					// I give up with flower pots
+
+					// FlowerPot toFlowerPot
+					// =(FlowerPot)to.getState().getData();
+					// toFlowerPot.setContents(new
+					// MaterialData(Material.RED_ROSE));
 					break;
 				}
 				case TORCH:

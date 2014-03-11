@@ -20,8 +20,8 @@ class GravityCheckAroundLater extends BukkitRunnable
 	{
 		for (int i = 0; i < 6; i++)
 		{
-			Block currentBlock = startBlock.getWorld().getBlockAt(startBlock.getX() + MehGravity.adjacentBlocks[i].getX(), startBlock.getY() + MehGravity.adjacentBlocks[i].getY(),
-					startBlock.getZ() + MehGravity.adjacentBlocks[i].getZ());
+			Block currentBlock = startBlock.getWorld().getBlockAt(startBlock.getX() + Structure.adjacentBlocks[i].getX(), startBlock.getY() + Structure.adjacentBlocks[i].getY(),
+					startBlock.getZ() + Structure.adjacentBlocks[i].getZ());
 			if (currentBlock.getType() != Material.AIR)
 			{
 				Structure structure = plugin.structureHandler.CreateStructure(currentBlock);

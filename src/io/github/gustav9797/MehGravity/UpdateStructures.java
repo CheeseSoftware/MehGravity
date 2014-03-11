@@ -48,8 +48,10 @@ class UpdateStructures extends BukkitRunnable
 						StructureBlock partOfStructure = toCheck.getExampleBlock();
 						Structure newStructure = structureHandler.CreateStructure(partOfStructure.originalBlock.getBlock());
 						i.remove();
-						if (newStructure != null)
+						if (newStructure != null && newStructure.FindMovingSpaceDown(world) >= 1)
 							toAdd.add(newStructure);
+						//else
+							//Bukkit.getServer().getPlayer("gustav9797").sendMessage("could not move down structure! D:");
 					}
 				}
 			}

@@ -28,6 +28,7 @@ public class StructureHandler
 
 	public Structure CreateStructure(Block startBlock)
 	{
+		boolean isNonSticky = MehGravity.nonStickyBlocks.contains(startBlock.getType());
 		Location startLocation = new Location(startBlock.getX(), startBlock.getY(), startBlock.getZ());
 		Structure structure = new Structure(GetFreeStructureId(), startBlock.getWorld());
 		Queue<Location> blocksToCheck = new LinkedList<Location>();
@@ -39,6 +40,8 @@ public class StructureHandler
 		{
 			// Store all blocks in the structure
 			Location currentParent = blocksToCheck.poll();
+			Block parentBlock = world.getBlockAt(currentParent.getX(), currentParent.getY(), currentParent.getZ());
+
 			for (int y = currentParent.getY(); y > -10; y--)
 			{
 				Block currentBlock = world.getBlockAt(currentParent.getX(), y, currentParent.getZ());
@@ -52,14 +55,49 @@ public class StructureHandler
 
 			for (int i = 0; i < 6; i++)
 			{
-				Location currentLocation = new Location(MehGravity.adjacentBlocks[i].getX() + currentParent.getX(), MehGravity.adjacentBlocks[i].getY() + currentParent.getY(),
-						MehGravity.adjacentBlocks[i].getZ() + currentParent.getZ());
+				Location currentLocation = new Location(Structure.adjacentBlocks[i].getX() + currentParent.getX(), Structure.adjacentBlocks[i].getY() + currentParent.getY(),
+						Structure.adjacentBlocks[i].getZ() + currentParent.getZ());
 				Block currentBlock = world.getBlockAt(currentLocation.getX(), currentLocation.getY(), currentLocation.getZ());
+				
+				Material parentMaterial = parentBlock.getType();
+				Material currentMaterial = currentBlock.getType();
 
-				if (!structure.HasBlock(currentLocation) && currentBlock.getType() != Material.AIR)
+				if (isNonSticky && currentBlock.getType() != Material.AIR && !structure.HasBlock(currentLocation))
 				{
-					if(MehGravity.staticBlocks.contains(currentBlock.getType()))
-							return null;
+					if (currentMaterial == parentMaterial)
+					{
+						structure.AddBlock(currentBlock.getState(), currentLocation);
+						blocksToCheck.add(currentLocation);
+						structure.totalBlocks++;
+					}
+				}
+				else if (currentBlock.getType() != Material.AIR && !structure.HasBlock(currentLocation))
+				{
+					if (MehGravity.staticBlocks.contains(currentBlock.getType()))
+						return null;
+
+					if (parentMaterial != currentMaterial && parentMaterial != Material.AIR)
+					{
+						// if we found a slippery block
+						if (MehGravity.nonStickyBlocks.contains(currentMaterial) && !MehGravity.nonStickyBlocks.contains(parentMaterial))
+						{
+							//if it is free-standing, add it to the structure
+							if (this.CreateStructure(currentBlock) == null)
+								continue;
+						}
+
+						if (MehGravity.nonStickyBlocksAgainstEachother.containsKey(parentMaterial))
+						{
+							if (MehGravity.nonStickyBlocksAgainstEachother.get(parentMaterial).contains(currentMaterial))
+								continue;
+						}
+						if (MehGravity.nonStickyBlocksAgainstEachother.containsKey(currentMaterial))
+						{
+							if (MehGravity.nonStickyBlocksAgainstEachother.get(currentMaterial).contains(parentMaterial))
+								continue;
+						}
+					}
+
 					structure.AddBlock(currentBlock.getState(), currentLocation);
 					blocksToCheck.add(currentLocation);
 					structure.totalBlocks++;

@@ -1,14 +1,9 @@
 # default config.yml
 #
-# Default values:
-#blocklimit: 2000
-#gravityWorlds:
-#  - AllWorlds
-#
-# Custom values:
 blocklimit: 2000
 # BlockLimit: The max amount of blocks the plugin should search until- 
 # it thinks it's part of the world. 2000 default, don't go too high!(> 20000)
+
 gravityWorlds:
   - AllWorlds
 # If this list contains "AllWorlds", all worlds on your server will be affected by gravity.
@@ -17,11 +12,27 @@ gravityWorlds:
 #  - WorldName1
 #  - WorldName2
 #  - OtherWorldsJustContinueLikeThis
+
 staticBlocks:
    - BEDROCK
 #staticBlocks:	(Block materials that won't fall down, any structure connected to these won't fall) (CAPS needed)
 #  - BEDROCK
 #  - SPONGE
-#
+# And so on..
+
+nonStickyBlocks:
+   - BEDROCK
+#nonStickyBlocks:	(Block materials that won't stick to any other blocks, just blocks of the same material) (CAPS needed)
+#  - BEDROCK
+#  - SPONGE
+# And so on..
+
+nonStickyBlocksAgainstEachother:
+   - COAL_BLOCK-REDSTONE_BLOCK
+#nonStickyBlocksAgainstEachother:	(Block materials that won't stick to specified materials) (CAPS needed)
+#  - BEDROCK-COAL_BLOCK
+#  - SPONGE-COBBLESTONE
+# And so on..
+
 useMetrics: true
 #Used to disable metrics
