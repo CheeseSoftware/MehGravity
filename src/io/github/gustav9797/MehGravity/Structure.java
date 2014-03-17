@@ -190,6 +190,11 @@ public class Structure
 			}
 		}
 	}
+	
+	public int Size()
+	{
+		return blocks.size();
+	}
 
 	public int FindMovingSpaceDown(World world)
 	{
@@ -229,7 +234,12 @@ public class Structure
 					int tempCurrentMaxFall = 0;
 					for (int y = currentY - 1; true; y--)
 					{
-						if (world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType() == Material.AIR)
+						if(y < 0)
+						{
+							currentMaxFall = Math.min(1024, currentMaxFall);
+							break;
+						}
+						else if (world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType() == Material.AIR)
 						{
 							tempCurrentMaxFall++;
 						}
@@ -265,9 +275,7 @@ public class Structure
 			}
 		}
 		if (currentMaxFall > 1024)
-		{
 			return 0;
-		}
 		return currentMaxFall;
 	}
 
@@ -279,13 +287,21 @@ public class Structure
 		while (i.hasNext())
 		{
 			StructureBlock current = i.next();
-			if (!sensitiveBlocks.contains(current.location))
+			if(current.location.getY() - 1 < 0)
 			{
+				current.originalBlock.getBlock().setType(Material.AIR);
+				i.remove();
+				continue;
+			}
+			
+			if (!sensitiveBlocks.contains(current.location))
+			{						
 				BlockState from = current.originalBlock;
 				BlockState fromState = from;
 				Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - 1, from.getLocation().getBlockZ());
 				to.setType(from.getType());
 				to.setData(from.getBlock().getData());
+				
 				switch (from.getType())
 				{
 					case REDSTONE_TORCH_ON:
@@ -593,6 +609,13 @@ public class Structure
 			l.setY(l.getY() - 1);
 			// l = entry.getValue().location;
 			// l.setY(l.getY() - 1);
+			
+			if(l.getY() - 1 < 0)
+			{
+				world.getBlockAt(l.getX(), l.getY(), l.getZ()).setType(Material.AIR);
+				continue;
+			}
+			
 			entry.getValue().originalBlock = world.getBlockAt(l.getX(), l.getY(), l.getZ()).getState();
 			temp.put(l, entry.getValue());
 		}

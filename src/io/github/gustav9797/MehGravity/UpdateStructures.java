@@ -35,7 +35,7 @@ class UpdateStructures extends BukkitRunnable
 				{
 					World world = toCheck.world;
 					int blocksFall = toCheck.FindMovingSpaceDown(world);
-					if (blocksFall >= 1)
+					if (blocksFall >= 1 && toCheck.Size() > 0)
 					{
 						toCheck.SortLevels();
 						toCheck.StoreNonSolidBlocks();
@@ -46,12 +46,17 @@ class UpdateStructures extends BukkitRunnable
 						// Now we should do one last gravity check and remove
 						// the structure
 						StructureBlock partOfStructure = toCheck.getExampleBlock();
-						Structure newStructure = structureHandler.CreateStructure(partOfStructure.originalBlock.getBlock());
-						i.remove();
-						if (newStructure != null && newStructure.FindMovingSpaceDown(world) >= 1)
-							toAdd.add(newStructure);
-						//else
-							//Bukkit.getServer().getPlayer("gustav9797").sendMessage("could not move down structure! D:");
+						if (partOfStructure != null)
+						{
+							Structure newStructure = structureHandler.CreateStructure(partOfStructure.originalBlock.getBlock());
+							i.remove();
+							if (newStructure != null && newStructure.FindMovingSpaceDown(world) >= 1)
+								toAdd.add(newStructure);
+						}
+						else
+							i.remove();
+						// else
+						// Bukkit.getServer().getPlayer("gustav9797").sendMessage("could not move down structure! D:");
 					}
 				}
 			}
