@@ -43,8 +43,24 @@ public class Structure
 
 	//Adjacent locations
 	static Location[] adjacentBlocks =
-	{ new Location(1, 0, 0), new Location(-1, 0, 0), new Location(0, 1, 0), new Location(0, -1, 0), new Location(0, 0, 1), new Location(0, 0, -1) };
+	{ new Location(0, -1, 0), new Location(1, 0, 0), new Location(-1, 0, 0), new Location(0, 1, 0), new Location(0, 0, 1), new Location(0, 0, -1) };
 
+	//Non-supporting materials
+	@SuppressWarnings("serial")
+	static final ArrayList<Material> weakBlocks = new ArrayList<Material>()
+	{
+		{
+			add(Material.SNOW);
+			add(Material.WATER);
+			add(Material.LAVA);
+			add(Material.GRASS);
+			add(Material.RED_ROSE);
+			add(Material.YELLOW_FLOWER);
+			add(Material.CARPET);
+			add(Material.FIRE);
+		}
+	};
+	
 	// List of blocks that pop/break when a supporting block is removed
 	@SuppressWarnings("serial")
 	static final ArrayList<Material> annoyingBlocks = new ArrayList<Material>()
@@ -234,12 +250,13 @@ public class Structure
 					int tempCurrentMaxFall = 0;
 					for (int y = currentY - 1; true; y--)
 					{
+						Material currentBlockMaterial = world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType();
 						if(y < 0)
 						{
 							currentMaxFall = Math.min(1024, currentMaxFall);
 							break;
 						}
-						else if (world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType() == Material.AIR)
+						else if (currentBlockMaterial == Material.AIR || Structure.weakBlocks.contains(currentBlockMaterial))
 						{
 							tempCurrentMaxFall++;
 						}

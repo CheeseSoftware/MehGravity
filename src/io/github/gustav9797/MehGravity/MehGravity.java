@@ -22,6 +22,7 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
 import org.mcstats.Metrics.Graph;
@@ -234,6 +235,15 @@ public final class MehGravity extends JavaPlugin implements Listener
 		Structure structure = structureHandler.CreateStructure(block);
 		if (structure != null)
 			structureHandler.AddStructure(structure);
+	}
+	
+	@EventHandler
+	public void onEntityExplode(EntityExplodeEvent event)
+	{
+		for(Block block : event.blockList())
+		{
+			this.CheckAround(block, 0);
+		}
 	}
 
 	@EventHandler
