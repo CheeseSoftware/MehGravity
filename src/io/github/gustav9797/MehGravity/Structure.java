@@ -53,11 +53,14 @@ public class Structure
 			add(Material.SNOW);
 			add(Material.WATER);
 			add(Material.LAVA);
-			add(Material.GRASS);
 			add(Material.RED_ROSE);
 			add(Material.YELLOW_FLOWER);
 			add(Material.CARPET);
 			add(Material.FIRE);
+			add(Material.LONG_GRASS);
+			add(Material.DEAD_BUSH);
+			add(Material.BROWN_MUSHROOM);
+			add(Material.RED_MUSHROOM);
 		}
 	};
 	
@@ -245,7 +248,7 @@ public class Structure
 			int maxY = entry.getValue();
 			for (int currentY = maxY; currentY >= minY; currentY--)
 			{
-				if (world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType() == Material.AIR)
+				if (world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType() == Material.AIR || Structure.weakBlocks.contains(world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType()))
 				{
 					int tempCurrentMaxFall = 0;
 					for (int y = currentY - 1; true; y--)

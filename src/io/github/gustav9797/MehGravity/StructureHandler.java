@@ -45,7 +45,7 @@ public class StructureHandler
 			for (int y = currentParent.getY(); y > -10; y--)
 			{
 				Block currentBlock = world.getBlockAt(currentParent.getX(), y, currentParent.getZ());
-				if (currentBlock.getType() == Material.AIR) // We didn't find
+				if (currentBlock.getType() == Material.AIR || Structure.weakBlocks.contains(currentBlock.getType())) // We didn't find
 															// bedrock, can't
 															// continue search
 					break;
@@ -61,6 +61,9 @@ public class StructureHandler
 				
 				Material parentMaterial = parentBlock.getType();
 				Material currentMaterial = currentBlock.getType();
+				
+				if(Structure.weakBlocks.contains(currentMaterial))
+					continue;
 
 				if (isNonSticky && currentBlock.getType() != Material.AIR && !structure.HasBlock(currentLocation))
 				{
