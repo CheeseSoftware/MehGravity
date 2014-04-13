@@ -118,6 +118,11 @@ public class Structure
 			add(Material.SKULL);
 		}
 	};
+	
+	public static boolean isMaterialWeak(Material material)
+	{
+		return Structure.weakBlocks.contains(material) || material == Material.AIR;
+	}
 
 	public Structure(int id, World world)
 	{
@@ -248,7 +253,7 @@ public class Structure
 			int maxY = entry.getValue();
 			for (int currentY = maxY; currentY >= minY; currentY--)
 			{
-				if (world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType() == Material.AIR || Structure.weakBlocks.contains(world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType()))
+				if (isMaterialWeak(world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType()))
 				{
 					int tempCurrentMaxFall = 0;
 					for (int y = currentY - 1; true; y--)
@@ -259,7 +264,7 @@ public class Structure
 							currentMaxFall = Math.min(1024, currentMaxFall);
 							break;
 						}
-						else if (currentBlockMaterial == Material.AIR || Structure.weakBlocks.contains(currentBlockMaterial))
+						else if (isMaterialWeak(currentBlockMaterial))
 						{
 							tempCurrentMaxFall++;
 						}
