@@ -28,6 +28,9 @@ public class StructureHandler
 
 	public Structure CreateStructure(Block startBlock)
 	{
+		if(!MehGravity.isWorldAffected(startBlock.getWorld().getName()))
+			return null;
+		
 		boolean isNonSticky = MehGravity.nonStickyBlocks.contains(startBlock.getType());
 		Location startLocation = new Location(startBlock.getX(), startBlock.getY(), startBlock.getZ());
 		Structure structure = new Structure(GetFreeStructureId(), startBlock.getWorld());
@@ -39,10 +42,18 @@ public class StructureHandler
 		while (!blocksToCheck.isEmpty())
 		{
 			// Store all blocks in the structure
-			Location currentParent = blocksToCheck.poll();
+			Location minY = null;
+			for(Location l : blocksToCheck)
+			{
+				if(minY == null || l.getY() < minY.getY())
+					minY = l;
+			}			
+			Location currentParent = minY;
+			blocksToCheck.remove(minY);
+			
 			Block parentBlock = world.getBlockAt(currentParent.getX(), currentParent.getY(), currentParent.getZ());
 
-			for (int y = currentParent.getY(); y > -10; y--)
+			for (int y = currentParent.getY(); y >= 0; y--)
 			{
 				Block currentBlock = world.getBlockAt(currentParent.getX(), y, currentParent.getZ());
 				if (Structure.isMaterialWeak(currentBlock.getType())) // We didn't find
@@ -57,6 +68,10 @@ public class StructureHandler
 			{
 				Location currentLocation = new Location(Structure.adjacentBlocks[i].getX() + currentParent.getX(), Structure.adjacentBlocks[i].getY() + currentParent.getY(),
 						Structure.adjacentBlocks[i].getZ() + currentParent.getZ());
+				
+				if(currentLocation.getY() <= 0)
+					return null;
+
 				Block currentBlock = world.getBlockAt(currentLocation.getX(), currentLocation.getY(), currentLocation.getZ());
 				
 				Material parentMaterial = parentBlock.getType();
@@ -72,6 +87,7 @@ public class StructureHandler
 						structure.AddBlock(currentBlock.getState(), currentLocation);
 						blocksToCheck.add(currentLocation);
 						structure.totalBlocks++;
+						//plugin.getServer().getPlayer("gustav9797").sendBlockChange(currentBlock.getLocation(), Material.SPONGE, (byte) 0);
 					}
 				}
 				else if (currentBlock.getType() != Material.AIR && !structure.HasBlock(currentLocation))
@@ -104,6 +120,7 @@ public class StructureHandler
 					structure.AddBlock(currentBlock.getState(), currentLocation);
 					blocksToCheck.add(currentLocation);
 					structure.totalBlocks++;
+					//plugin.getServer().getPlayer("gustav9797").sendBlockChange(currentBlock.getLocation(), Material.SPONGE, (byte) 0);
 				}
 			}
 

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -215,12 +216,12 @@ public final class MehGravity extends JavaPlugin implements Listener
 		return false;
 	}
 
-	public boolean isWorldAffected(String worldName)
+	public static boolean isWorldAffected(String worldName)
 	{
-		World world = this.getServer().getWorld(worldName);
+		World world = Bukkit.getServer().getWorld(worldName);
 		if (world != null)
 		{
-			return gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(worldName);
+			return !gravityWorlds.contains("-" + worldName) && (gravityWorlds.contains("AllWorlds") || gravityWorlds.contains(worldName));
 		}
 		return false;
 	}
@@ -249,14 +250,14 @@ public final class MehGravity extends JavaPlugin implements Listener
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event)
 	{
-		if (HasPerms(event.getPlayer()) && this.isWorldAffected(event.getPlayer().getWorld().getName()))
+		if (HasPerms(event.getPlayer()))
 			CheckAround(event.getBlock(), 0);
 	}
 
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event)
 	{
-		if (HasPerms(event.getPlayer()) && this.isWorldAffected(event.getPlayer().getWorld().getName()))
+		if (HasPerms(event.getPlayer()))
 			Check(event.getBlockPlaced());
 	}
 

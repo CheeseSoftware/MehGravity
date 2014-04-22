@@ -16,6 +16,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
+import org.bukkit.block.CommandBlock;
+import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.Dispenser;
 import org.bukkit.block.Dropper;
 import org.bukkit.block.Furnace;
@@ -41,11 +43,11 @@ public class Structure
 	private Queue<Location> sensitiveBlocks;
 	public Date moveDate;
 
-	//Adjacent locations
+	// Adjacent locations
 	static Location[] adjacentBlocks =
 	{ new Location(0, -1, 0), new Location(1, 0, 0), new Location(-1, 0, 0), new Location(0, 1, 0), new Location(0, 0, 1), new Location(0, 0, -1) };
 
-	//Non-supporting materials
+	// Non-supporting materials
 	@SuppressWarnings("serial")
 	static final ArrayList<Material> weakBlocks = new ArrayList<Material>()
 	{
@@ -61,9 +63,27 @@ public class Structure
 			add(Material.DEAD_BUSH);
 			add(Material.BROWN_MUSHROOM);
 			add(Material.RED_MUSHROOM);
+			
+			// Added by tubelius 20140419
+			add(Material.CAKE_BLOCK);
+			add(Material.CARROT);
+			add(Material.CROPS);
+			add(Material.DOUBLE_PLANT);
+			add(Material.MELON_STEM);
+			add(Material.POTATO);
+			add(Material.PUMPKIN_STEM);
+			add(Material.REDSTONE_WIRE);
+			add(Material.SAPLING);
+			add(Material.STATIONARY_LAVA);
+			add(Material.STATIONARY_WATER);
+			add(Material.STONE_BUTTON);
+			add(Material.TRIPWIRE);
+			add(Material.TRIPWIRE_HOOK);
+			add(Material.WATER_LILY);
+			add(Material.WOOD_BUTTON);
 		}
 	};
-	
+
 	// List of blocks that pop/break when a supporting block is removed
 	@SuppressWarnings("serial")
 	static final ArrayList<Material> annoyingBlocks = new ArrayList<Material>()
@@ -118,7 +138,7 @@ public class Structure
 			add(Material.SKULL);
 		}
 	};
-	
+
 	public static boolean isMaterialWeak(Material material)
 	{
 		return Structure.weakBlocks.contains(material) || material == Material.AIR;
@@ -214,7 +234,7 @@ public class Structure
 			}
 		}
 	}
-	
+
 	public int Size()
 	{
 		return blocks.size();
@@ -259,7 +279,7 @@ public class Structure
 					for (int y = currentY - 1; true; y--)
 					{
 						Material currentBlockMaterial = world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType();
-						if(y < 0)
+						if (y < 0)
 						{
 							currentMaxFall = Math.min(1024, currentMaxFall);
 							break;
@@ -312,26 +332,42 @@ public class Structure
 		while (i.hasNext())
 		{
 			StructureBlock current = i.next();
-			if(current.location.getY() - 1 < 0)
+			
+			if (current.location.getY() - 1 < 0)
 			{
 				current.originalBlock.getBlock().setType(Material.AIR);
 				i.remove();
 				continue;
 			}
-			
+
 			if (!sensitiveBlocks.contains(current.location))
-			{						
+			{
 				BlockState from = current.originalBlock;
 				BlockState fromState = from;
 				Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - 1, from.getLocation().getBlockZ());
+				if(Structure.isMaterialWeak(to.getType()))
+					to.breakNaturally();
 				to.setType(from.getType());
 				to.setData(from.getBlock().getData());
-				
+
 				switch (from.getType())
 				{
+					case COMMAND:
+					{
+						CommandBlock fromBlock = (CommandBlock) fromState;
+						CommandBlock toBlock = (CommandBlock) to.getState();
+						toBlock.setCommand(fromBlock.getCommand());
+					}
+					case MOB_SPAWNER:
+					{
+						CreatureSpawner fromSpawner = (CreatureSpawner) fromState;
+						CreatureSpawner toSpawner = (CreatureSpawner) to.getState();
+						toSpawner.setDelay(fromSpawner.getDelay());
+						toSpawner.setSpawnedType(fromSpawner.getSpawnedType());
+					}
 					case REDSTONE_TORCH_ON:
 					{
-						// Set it to air to make it forcefully be placed back
+						// Set it to air to make it get forcefully placed back
 						// and trigger redstone
 						to.setType(Material.AIR);
 						break;
@@ -444,7 +480,11 @@ public class Structure
 			BlockState fromStateAbove = null;
 			if (blocks.containsKey(aboveLocation))
 				fromStateAbove = blocks.get(aboveLocation).originalBlock;
+			
 			Block to = world.getBlockAt(current.location.getX(), current.location.getY() - 1, current.location.getZ());
+			if(Structure.isMaterialWeak(to.getType()))
+				to.breakNaturally();
+			
 			if (fromState.getType() != Material.WOODEN_DOOR && fromState.getType() != Material.IRON_DOOR_BLOCK)
 			{
 				boolean hasBlockToSitOn = false;
@@ -634,13 +674,13 @@ public class Structure
 			l.setY(l.getY() - 1);
 			// l = entry.getValue().location;
 			// l.setY(l.getY() - 1);
-			
-			if(l.getY() - 1 < 0)
+
+			if (l.getY() - 1 < 0)
 			{
 				world.getBlockAt(l.getX(), l.getY(), l.getZ()).setType(Material.AIR);
 				continue;
 			}
-			
+
 			entry.getValue().originalBlock = world.getBlockAt(l.getX(), l.getY(), l.getZ()).getState();
 			temp.put(l, entry.getValue());
 		}
