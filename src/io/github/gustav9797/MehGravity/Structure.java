@@ -357,6 +357,7 @@ public class Structure
 						CommandBlock fromBlock = (CommandBlock) fromState;
 						CommandBlock toBlock = (CommandBlock) to.getState();
 						toBlock.setCommand(fromBlock.getCommand());
+						break;
 					}
 					case MOB_SPAWNER:
 					{
@@ -364,6 +365,7 @@ public class Structure
 						CreatureSpawner toSpawner = (CreatureSpawner) to.getState();
 						toSpawner.setDelay(fromSpawner.getDelay());
 						toSpawner.setSpawnedType(fromSpawner.getSpawnedType());
+						break;
 					}
 					case REDSTONE_TORCH_ON:
 					{
