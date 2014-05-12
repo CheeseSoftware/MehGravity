@@ -365,6 +365,7 @@ public class Structure
 						CreatureSpawner toSpawner = (CreatureSpawner) to.getState();
 						toSpawner.setDelay(fromSpawner.getDelay());
 						toSpawner.setSpawnedType(fromSpawner.getSpawnedType());
+						toBlock.update(); //Added by tubelius 20140512
 						break;
 					}
 					case REDSTONE_TORCH_ON:
