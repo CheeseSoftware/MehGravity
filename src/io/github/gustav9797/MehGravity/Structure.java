@@ -357,6 +357,7 @@ public class Structure
 						CommandBlock fromBlock = (CommandBlock) fromState;
 						CommandBlock toBlock = (CommandBlock) to.getState();
 						toBlock.setCommand(fromBlock.getCommand());
+						toBlock.update(); //I guess it should be like this
 						break;
 					}
 					case MOB_SPAWNER:
@@ -365,7 +366,7 @@ public class Structure
 						CreatureSpawner toSpawner = (CreatureSpawner) to.getState();
 						toSpawner.setDelay(fromSpawner.getDelay());
 						toSpawner.setSpawnedType(fromSpawner.getSpawnedType());
-						toBlock.update(); //Added by tubelius 20140512
+						toSpawner.update(); //Added by tubelius 20140512
 						break;
 					}
 					case REDSTONE_TORCH_ON:
@@ -479,10 +480,10 @@ public class Structure
 		{
 			StructureBlock current = i.next();
 			BlockState fromState = blocks.get(current.location).originalBlock;
-			Location aboveLocation = new Location(current.location.getX(), current.location.getY() + 1, current.location.getZ());
-			BlockState fromStateAbove = null;
-			if (blocks.containsKey(aboveLocation))
-				fromStateAbove = blocks.get(aboveLocation).originalBlock;
+			//Location aboveLocation = new Location(current.location.getX(), current.location.getY() + 1, current.location.getZ());
+			//BlockState fromStateAbove = null;
+			//if (blocks.containsKey(aboveLocation))
+				//fromStateAbove = blocks.get(aboveLocation).originalBlock;
 			
 			Block to = world.getBlockAt(current.location.getX(), current.location.getY() - 1, current.location.getZ());
 			if(Structure.isMaterialWeak(to.getType()))
@@ -571,14 +572,13 @@ public class Structure
 					if (top.getRelative(BlockFace.DOWN).getType() == Material.WOODEN_DOOR)
 						break;
 
-					top.setType(Material.WOODEN_DOOR);
-					if (fromStateAbove != null)
-						top.setData(fromStateAbove.getData().getData());
-
 					to.setType(Material.WOODEN_DOOR);
-					to.setData(fromState.getData().getData());
+					to.setData(fromState.getBlock().getData());
 
-					// Now check if it's a double-door
+					top.setType(Material.WOODEN_DOOR);
+					top.setData((byte) 8);
+
+					// Now check if it's a double-door or single-door
 					int directionFacing = to.getData();
 					switch (directionFacing)
 					{
