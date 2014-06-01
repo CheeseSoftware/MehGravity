@@ -30,7 +30,7 @@ import org.mcstats.Metrics.Graph;
 
 public final class MehGravity extends JavaPlugin implements Listener
 {
-	public static int blockLimit = 2000;
+	public static int blockLimit = 8192;
 	public static HashSet<Material> staticBlocks;
 	public static HashSet<Material> nonStickyBlocks;
 	public static HashMap<Material, HashSet<Material>> nonStickyBlocksAgainstEachother;

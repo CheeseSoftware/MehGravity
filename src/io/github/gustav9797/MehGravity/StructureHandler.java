@@ -1,9 +1,13 @@
 package io.github.gustav9797.MehGravity;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -31,40 +35,102 @@ public class StructureHandler
 		if(!MehGravity.isWorldAffected(startBlock.getWorld().getName()))
 			return null;
 		
-		boolean isNonSticky = MehGravity.nonStickyBlocks.contains(startBlock.getType());
-		Location startLocation = new Location(startBlock.getX(), startBlock.getY(), startBlock.getZ());
-		Structure structure = new Structure(GetFreeStructureId(), startBlock.getWorld());
-		Queue<Location> blocksToCheck = new LinkedList<Location>();
+		boolean isNonSticky;
+		Location startLocation;
+		Structure structure;
+		Queue<Location> blocksToCheck;
+		World world;
+		
+		world = startBlock.getWorld();
+		
+		isNonSticky = MehGravity.nonStickyBlocks
+				.contains(startBlock.getType());
+		
+		startLocation = new Location(
+				startBlock.getX(), 
+				startBlock.getY(), 
+				startBlock.getZ());
+		
+		structure = new Structure(
+				GetFreeStructureId(), 
+				startBlock.getWorld());
+		
+		blocksToCheck = new LinkedList<Location>();
+		
 		blocksToCheck.add(startLocation);
-		structure.AddBlock(startBlock.getState(), startLocation);
-		structure.totalBlocks++;
-		World world = startBlock.getWorld();
+		
+		//structure.AddBlock(startBlock.getState(), startLocation);
+		//structure.totalBlocks++;
+		
 		while (!blocksToCheck.isEmpty())
 		{
 			// Store all blocks in the structure
-			Location minY = null;
-			for(Location l : blocksToCheck)
-			{
-				if(minY == null || l.getY() < minY.getY())
-					minY = l;
-			}			
-			Location currentParent = minY;
-			blocksToCheck.remove(minY);
+			//Location minY = null;
+			//for(Location l : blocksToCheck)
+			//{
+			//	if(minY == null || l.getY() < minY.getY())
+			//		minY = l;
+			//}			
+			//Location currentParent = minY;
+			//blocksToCheck.remove(minY);
 			
-			Block parentBlock = world.getBlockAt(currentParent.getX(), currentParent.getY(), currentParent.getZ());
+			if (structure.totalBlocks > MehGravity.blockLimit)
+				return null;
+			
+			Location location = blocksToCheck.poll();
 
-			for (int y = currentParent.getY(); y >= 0; y--)
+			if (location.getY() <= 0)
+				return null;
+			
+			Block block = world.getBlockAt(location.getX(), location.getY(), location.getZ());
+
+			Material material = block.getType();
+			
+			if(Structure.isMaterialWeak(material))
 			{
-				Block currentBlock = world.getBlockAt(currentParent.getX(), y, currentParent.getZ());
-				if (Structure.isMaterialWeak(currentBlock.getType())) // We didn't find
-															// bedrock, can't
-															// continue search
-					break;
+				continue;
+			}
+			
+			if (/*!isNonSticky || */material == Material.AIR || structure.HasBlock(location))
+				continue;
+			
+			structure.AddBlock(block.getState(), 
+					new Location(location.getX(), location.getY(), location.getZ()));
+			structure.totalBlocks++;
+			
+			/*for (int y = location.getY()-1; y >= 0; y--)
+			{
+				Location currentLocation;
+				Block currentBlock = world.getBlockAt(location.getX(), y, location.getZ());
+				if (Structure.isMaterialWeak(currentBlock.getType()))
+					break; // We didn't find bedrock, can't continue search
+				
 				else if (MehGravity.staticBlocks.contains(currentBlock.getType()))
 					return null;
-			}
-
-			for (int i = 0; i < 6; i++)
+				
+				currentLocation = new Location(location.getX(), y, location.getZ());
+				
+				if (currentBlock.getType() == Material.AIR || structure.HasBlock(currentLocation))
+				{
+					break;
+				}
+				else
+				{
+					//structure.AddBlock(block.getState(), currentLocation);
+					blocksToCheck.add(location);
+					//structure.totalBlocks++;
+				}
+					
+			}*/
+			
+			blocksToCheck.add(new Location(location.getX(), location.getY()-1, location.getZ()));
+			blocksToCheck.add(new Location(location.getX()+1, location.getY(), location.getZ()));
+			blocksToCheck.add(new Location(location.getX(), location.getY(), location.getZ()+1));
+			blocksToCheck.add(new Location(location.getX()-1, location.getY(), location.getZ()));
+			blocksToCheck.add(new Location(location.getX(), location.getY(), location.getZ()-1));
+			blocksToCheck.add(new Location(location.getX(), location.getY()+1, location.getZ()));
+			
+			/*for (int i = 0; i < 6; i++)
 			{
 				Location currentLocation = new Location(Structure.adjacentBlocks[i].getX() + currentParent.getX(), Structure.adjacentBlocks[i].getY() + currentParent.getY(),
 						Structure.adjacentBlocks[i].getZ() + currentParent.getZ());
@@ -122,12 +188,7 @@ public class StructureHandler
 					structure.totalBlocks++;
 					//plugin.getServer().getPlayer("gustav9797").sendBlockChange(currentBlock.getLocation(), Material.SPONGE, (byte) 0);
 				}
-			}
-
-			if (structure.totalBlocks >= MehGravity.blockLimit)
-			{
-				return null;
-			}
+			}*/
 		}
 		return structure;
 	}
