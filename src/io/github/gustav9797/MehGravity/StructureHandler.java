@@ -64,16 +64,6 @@ public class StructureHandler
 		
 		while (!blocksToCheck.isEmpty())
 		{
-			// Store all blocks in the structure
-			//Location minY = null;
-			//for(Location l : blocksToCheck)
-			//{
-			//	if(minY == null || l.getY() < minY.getY())
-			//		minY = l;
-			//}			
-			//Location currentParent = minY;
-			//blocksToCheck.remove(minY);
-			
 			if (structure.totalBlocks > MehGravity.blockLimit)
 				return null;
 			
@@ -98,97 +88,12 @@ public class StructureHandler
 					new Location(location.getX(), location.getY(), location.getZ()));
 			structure.totalBlocks++;
 			
-			/*for (int y = location.getY()-1; y >= 0; y--)
-			{
-				Location currentLocation;
-				Block currentBlock = world.getBlockAt(location.getX(), y, location.getZ());
-				if (Structure.isMaterialWeak(currentBlock.getType()))
-					break; // We didn't find bedrock, can't continue search
-				
-				else if (MehGravity.staticBlocks.contains(currentBlock.getType()))
-					return null;
-				
-				currentLocation = new Location(location.getX(), y, location.getZ());
-				
-				if (currentBlock.getType() == Material.AIR || structure.HasBlock(currentLocation))
-				{
-					break;
-				}
-				else
-				{
-					//structure.AddBlock(block.getState(), currentLocation);
-					blocksToCheck.add(location);
-					//structure.totalBlocks++;
-				}
-					
-			}*/
-			
 			blocksToCheck.add(new Location(location.getX(), location.getY()-1, location.getZ()));
 			blocksToCheck.add(new Location(location.getX()+1, location.getY(), location.getZ()));
 			blocksToCheck.add(new Location(location.getX(), location.getY(), location.getZ()+1));
 			blocksToCheck.add(new Location(location.getX()-1, location.getY(), location.getZ()));
 			blocksToCheck.add(new Location(location.getX(), location.getY(), location.getZ()-1));
 			blocksToCheck.add(new Location(location.getX(), location.getY()+1, location.getZ()));
-			
-			/*for (int i = 0; i < 6; i++)
-			{
-				Location currentLocation = new Location(Structure.adjacentBlocks[i].getX() + currentParent.getX(), Structure.adjacentBlocks[i].getY() + currentParent.getY(),
-						Structure.adjacentBlocks[i].getZ() + currentParent.getZ());
-				
-				if(currentLocation.getY() <= 0)
-					return null;
-
-				Block currentBlock = world.getBlockAt(currentLocation.getX(), currentLocation.getY(), currentLocation.getZ());
-				
-				Material parentMaterial = parentBlock.getType();
-				Material currentMaterial = currentBlock.getType();
-				
-				if(Structure.isMaterialWeak(currentMaterial))
-					continue;
-
-				if (isNonSticky && currentBlock.getType() != Material.AIR && !structure.HasBlock(currentLocation))
-				{
-					if (currentMaterial == parentMaterial)
-					{
-						structure.AddBlock(currentBlock.getState(), currentLocation);
-						blocksToCheck.add(currentLocation);
-						structure.totalBlocks++;
-						//plugin.getServer().getPlayer("gustav9797").sendBlockChange(currentBlock.getLocation(), Material.SPONGE, (byte) 0);
-					}
-				}
-				else if (currentBlock.getType() != Material.AIR && !structure.HasBlock(currentLocation))
-				{
-					if (MehGravity.staticBlocks.contains(currentBlock.getType()))
-						return null;
-
-					if (parentMaterial != currentMaterial && parentMaterial != Material.AIR)
-					{
-						// if we found a slippery block
-						if (MehGravity.nonStickyBlocks.contains(currentMaterial) && !MehGravity.nonStickyBlocks.contains(parentMaterial))
-						{
-							//if it is free-standing, add it to the structure
-							if (this.CreateStructure(currentBlock) == null)
-								continue;
-						}
-
-						if (MehGravity.nonStickyBlocksAgainstEachother.containsKey(parentMaterial))
-						{
-							if (MehGravity.nonStickyBlocksAgainstEachother.get(parentMaterial).contains(currentMaterial))
-								continue;
-						}
-						if (MehGravity.nonStickyBlocksAgainstEachother.containsKey(currentMaterial))
-						{
-							if (MehGravity.nonStickyBlocksAgainstEachother.get(currentMaterial).contains(parentMaterial))
-								continue;
-						}
-					}
-
-					structure.AddBlock(currentBlock.getState(), currentLocation);
-					blocksToCheck.add(currentLocation);
-					structure.totalBlocks++;
-					//plugin.getServer().getPlayer("gustav9797").sendBlockChange(currentBlock.getLocation(), Material.SPONGE, (byte) 0);
-				}
-			}*/
 		}
 		return structure;
 	}
