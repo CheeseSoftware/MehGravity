@@ -1,13 +1,10 @@
 package io.github.gustav9797.MehGravity;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
-import java.util.Set;
+import java.util.Stack;
 
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -35,13 +32,12 @@ public class StructureHandler
 		if(!MehGravity.isWorldAffected(startBlock.getWorld().getName()))
 			return null;
 		
+		// TODO: Reimplement this unknown feature.
 		boolean isNonSticky;
 		Location startLocation;
 		Structure structure;
-		Queue<Location> blocksToCheck;
-		World world;
-		
-		world = startBlock.getWorld();
+		Stack<Location> blocksToCheck = new Stack<Location>();
+		World world = startBlock.getWorld();
 		
 		isNonSticky = MehGravity.nonStickyBlocks
 				.contains(startBlock.getType());
@@ -55,26 +51,24 @@ public class StructureHandler
 				GetFreeStructureId(), 
 				startBlock.getWorld());
 		
-		blocksToCheck = new LinkedList<Location>();
-		
 		blocksToCheck.add(startLocation);
-		
-		//structure.AddBlock(startBlock.getState(), startLocation);
-		//structure.totalBlocks++;
 		
 		while (!blocksToCheck.isEmpty())
 		{
+			Location location;
+			Block block;
+			Material material;
+			
 			if (structure.totalBlocks > MehGravity.blockLimit)
 				return null;
 			
-			Location location = blocksToCheck.poll();
+			location = blocksToCheck.pop();
 
 			if (location.getY() <= 0)
 				return null;
 			
-			Block block = world.getBlockAt(location.getX(), location.getY(), location.getZ());
-
-			Material material = block.getType();
+			block = world.getBlockAt(location.getX(), location.getY(), location.getZ());
+			material = block.getType();
 			
 			if(Structure.isMaterialWeak(material))
 			{
@@ -86,14 +80,16 @@ public class StructureHandler
 			
 			structure.AddBlock(block.getState(), 
 					new Location(location.getX(), location.getY(), location.getZ()));
+			
 			structure.totalBlocks++;
 			
-			blocksToCheck.add(new Location(location.getX(), location.getY()-1, location.getZ()));
+			// Note that it ends with location.getY()-1. That will be the next node since it's in the top of the stack.
+			blocksToCheck.add(new Location(location.getX(), location.getY()+1, location.getZ()));
 			blocksToCheck.add(new Location(location.getX()+1, location.getY(), location.getZ()));
 			blocksToCheck.add(new Location(location.getX(), location.getY(), location.getZ()+1));
 			blocksToCheck.add(new Location(location.getX()-1, location.getY(), location.getZ()));
 			blocksToCheck.add(new Location(location.getX(), location.getY(), location.getZ()-1));
-			blocksToCheck.add(new Location(location.getX(), location.getY()+1, location.getZ()));
+			blocksToCheck.add(new Location(location.getX(), location.getY()-1, location.getZ()));
 		}
 		return structure;
 	}
