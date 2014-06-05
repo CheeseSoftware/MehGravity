@@ -70,6 +70,9 @@ public class StructureHandler
 			block = world.getBlockAt(location.getX(), location.getY(), location.getZ());
 			material = block.getType();
 			
+			if (material == Material.BEDROCK)
+				return null;
+			
 			if(Structure.isMaterialWeak(material))
 			{
 				continue;
