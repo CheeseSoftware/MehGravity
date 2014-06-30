@@ -77,8 +77,12 @@ public class StructureHandler
 			{
 				continue;
 			}
-			
-			if (/*!isNonSticky || */material == Material.AIR || structure.HasBlock(location))
+
+			//tubelius 20140629 gravel and sand has to be tretated as air because:
+			//	if the plugin and vanilla server tries to move them, they get duplicated
+			//	they should never stick to other blocks next to them
+			//if (/*!isNonSticky || */material == Material.AIR || structure.HasBlock(location))
+			if (material == Material.AIR || material == Material.GRAVEL || material == Material.SAND || structure.HasBlock(location))
 				continue;
 			
 			structure.AddBlock(block.getState(), 
