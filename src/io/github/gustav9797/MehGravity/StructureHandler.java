@@ -2,6 +2,8 @@ package io.github.gustav9797.MehGravity;
 
 import java.util.Date;
 import java.util.HashMap;
+//import java.util.LinkedList;
+//import java.util.Queue;
 import java.util.Stack;
 
 import org.bukkit.Material;
@@ -27,8 +29,7 @@ public class StructureHandler
 
 	public Structure CreateStructure(Block startBlock)
 	{
-		if(!MehGravity.isWorldAffected(startBlock.getWorld().getName()))
-			return null;
+		if(!MehGravity.isWorldAffected(startBlock.getWorld().getName())) { return null; }
 		
 		// TODO: Reimplement this unknown feature.
 //		boolean isNonSticky;
@@ -76,12 +77,13 @@ public class StructureHandler
 				continue;
 			}
 
-			//tubelius 20140629 gravel and sand has to be tretated as air because:
+			//gravel and sand has to be treated as air because:
 			//	if the plugin and vanilla server tries to move them, they get duplicated
 			//	they should never stick to other blocks next to them
 			//if (/*!isNonSticky || */material == Material.AIR || structure.HasBlock(location))
-			if (material == Material.AIR || material == Material.GRAVEL || material == Material.SAND || structure.HasBlock(location))
+			if (material == Material.AIR || material == Material.GRAVEL || material == Material.SAND || structure.HasBlock(location)) {
 				continue;
+			}
 			
 			structure.AddBlock(block.getState(), 
 					new Location(location.getX(), location.getY(), location.getZ()));
