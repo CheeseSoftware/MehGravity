@@ -107,7 +107,6 @@ public class Structure
 			add(Material.PAINTING);
 			add(Material.SIGN_POST);
 			add(Material.WALL_SIGN);
-			add(Material.BED);
 			add(Material.ITEM_FRAME);
 			add(Material.FLOWER_POT);
 			add(Material.LEVER);
