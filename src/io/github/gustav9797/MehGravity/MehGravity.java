@@ -37,7 +37,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 	public static List<String> gravityWorlds;
 	public StructureHandler structureHandler;
 
-	private File configFile = null;
+	private File configFile    = null;
 	private boolean useMetrics = false;
 	private Metrics metrics;
 
@@ -87,8 +87,9 @@ public final class MehGravity extends JavaPlugin implements Listener
 				e.printStackTrace();
 			}
 		}
-		else
+		else {
 			this.getLogger().info("Metrics is not used");
+		}
 
 	}
 
@@ -278,7 +279,13 @@ public final class MehGravity extends JavaPlugin implements Listener
 	{
 		Block base = event.getBlock();
 		Block toCheck = base.getWorld().getBlockAt(
-				new org.bukkit.Location(base.getWorld(), base.getX() + event.getDirection().getModX(), base.getY() + event.getDirection().getModY(), base.getZ() + event.getDirection().getModZ()));
+			new org.bukkit.Location(
+		        base.getWorld(), 
+		        base.getX() + event.getDirection().getModX(), 
+		        base.getY() + event.getDirection().getModY(), 
+		        base.getZ() + event.getDirection().getModZ()
+	        )
+		);
 		CheckAround(toCheck, 10);
 	}
 
@@ -287,7 +294,13 @@ public final class MehGravity extends JavaPlugin implements Listener
 	{
 		Block base = event.getBlock();
 		Block toCheck = base.getWorld().getBlockAt(
-				new org.bukkit.Location(base.getWorld(), base.getX() + event.getDirection().getModX(), base.getY() + event.getDirection().getModY(), base.getZ() + event.getDirection().getModZ()));
+			new org.bukkit.Location(
+	            base.getWorld(), 
+	            base.getX() + event.getDirection().getModX(), 
+	            base.getY() + event.getDirection().getModY(), 
+	            base.getZ() + event.getDirection().getModZ()
+            )
+		);
 		CheckAround(toCheck, 10);
 	}
 
