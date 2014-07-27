@@ -31,14 +31,14 @@ public class StructureHandler
 			return null;
 		
 		// TODO: Reimplement this unknown feature.
-		boolean isNonSticky;
+//		boolean isNonSticky;
 		Location startLocation;
 		Structure structure;
 		Stack<Location> blocksToCheck = new Stack<Location>();
 		World world = startBlock.getWorld();
 		
-		isNonSticky = MehGravity.nonStickyBlocks
-				.contains(startBlock.getType());
+//		isNonSticky = MehGravity.nonStickyBlocks
+//				.contains(startBlock.getType());
 		
 		startLocation = new Location(
 				startBlock.getX(), 
