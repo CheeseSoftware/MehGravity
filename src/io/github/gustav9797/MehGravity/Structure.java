@@ -48,8 +48,14 @@ public class Structure
     public Date moveDate;
 
     // Adjacent locations
-    static Location[] adjacentBlocks =
-    { new Location(0, -1, 0), new Location(1, 0, 0), new Location(-1, 0, 0), new Location(0, 1, 0), new Location(0, 0, 1), new Location(0, 0, -1) };
+    static Location[] adjacentBlocks = { 
+        new Location(0, -1, 0), 
+        new Location(1, 0, 0), 
+        new Location(-1, 0, 0), 
+        new Location(0, 1, 0), 
+        new Location(0, 0, 1), 
+        new Location(0, 0, -1) 
+    };
 
     // Non-supporting materials
     @SuppressWarnings("serial")
@@ -111,7 +117,6 @@ public class Structure
             add(Material.PAINTING);
             add(Material.SIGN_POST);
             add(Material.WALL_SIGN);
-//            add(Material.BED);
             add(Material.ITEM_FRAME);
             add(Material.FLOWER_POT);
             add(Material.LEVER);
@@ -246,34 +251,32 @@ public class Structure
 
     public int FindMovingSpaceDown(World world)
     {
-        Map<ColumnCoord, Integer> minima = new HashMap<ColumnCoord, Integer>();
-        Map<ColumnCoord, Integer> maxima = new HashMap<ColumnCoord, Integer>();
+        Map<ColumnCoord, Integer> columnsMinHeight = new HashMap<ColumnCoord, Integer>();
+        Map<ColumnCoord, Integer> columnsMaxHeight = new HashMap<ColumnCoord, Integer>();
 
         Iterator<Entry<Location, StructureBlock>> it = blocks.entrySet().iterator();
         while (it.hasNext())
         {
-
-            // BlockState block = it.next().getValue().originalBlock;
             Location block = it.next().getKey();
-            ColumnCoord coord = new ColumnCoord(block.getX(), block.getZ());
-            Integer min = minima.get(coord);
-            Integer max = maxima.get(coord);
-            if (min == null)
+            ColumnCoord columnXZ = new ColumnCoord(block.getX(), block.getZ());
+            Integer minY = columnsMinHeight.get(columnXZ);
+            Integer maxY = columnsMaxHeight.get(columnXZ);
+            if (minY == null)
             {
-                minima.put(coord, block.getY());
-                maxima.put(coord, block.getY());
+                columnsMinHeight.put(columnXZ, block.getY());
+                columnsMaxHeight.put(columnXZ, block.getY());
             }
             else
             {
-                minima.put(coord, Math.min(min, block.getY()));
-                maxima.put(coord, Math.max(max, block.getY()));
+                columnsMinHeight.put(columnXZ, Math.min(minY, block.getY()));
+                columnsMaxHeight.put(columnXZ, Math.max(maxY, block.getY()));
             }
         }
 
         int currentMaxFall = Integer.MAX_VALUE;
-        for (Map.Entry<ColumnCoord, Integer> entry : maxima.entrySet())
+        for (Map.Entry<ColumnCoord, Integer> entry : columnsMaxHeight.entrySet())
         {
-            int minY = minima.get(entry.getKey());
+            int minY = columnsMinHeight.get(entry.getKey());
             int maxY = entry.getValue();
             for (int currentY = maxY; currentY >= minY; currentY--)
             {
@@ -283,28 +286,22 @@ public class Structure
                     for (int y = currentY - 1; true; y--)
                     {
                         Material currentBlockMaterial = world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType();
-                        if (y < 0)
-                        {
+                        if (y < 0) {
                             currentMaxFall = Math.min(1024, currentMaxFall);
                             break;
                         }
-                        else if (isMaterialWeak(currentBlockMaterial))
-                        {
+                        else if (isMaterialWeak(currentBlockMaterial)) {
                             tempCurrentMaxFall++;
                         }
-                        else if (blocks.containsKey(new Location(entry.getKey().x, y, entry.getKey().z)))
-                        {
+                        else if (blocks.containsKey(new Location(entry.getKey().x, y, entry.getKey().z))) {
                             currentY = y + 1;
                             break;
-                        }
-                        else
-                        {
+                        } 
+                        else {
                             currentMaxFall = Math.min(tempCurrentMaxFall, currentMaxFall);
                             int tempY = 0;
-                            for (tempY = y; tempY >= minY; tempY--)
-                            {
-                                if (blocks.containsKey(new Location(entry.getKey().x, tempY, entry.getKey().z)))
-                                {
+                            for (tempY = y; tempY >= minY; tempY--) {
+                                if (blocks.containsKey(new Location(entry.getKey().x, tempY, entry.getKey().z))) {
                                     currentY = tempY;
                                     break;
                                 }
@@ -314,17 +311,16 @@ public class Structure
 
                     }
                 }
-                else if (blocks.containsKey(new Location(entry.getKey().x, currentY, entry.getKey().z)))
-                {
-                    if (!blocks.containsKey(new Location(entry.getKey().x, currentY - 1, entry.getKey().z)))
-                    {
+                else if (blocks.containsKey(new Location(entry.getKey().x, currentY, entry.getKey().z))) {
+                    if (!blocks.containsKey(new Location(entry.getKey().x, currentY - 1, entry.getKey().z))) {
                         return 0;
                     }
                 }
             }
         }
-        if (currentMaxFall > 1024)
+        if (currentMaxFall > 1024) {
             return 0;
+        }
         return currentMaxFall;
     }
 
@@ -350,170 +346,75 @@ public class Structure
                 BlockState from = current.originalBlock;
                 BlockState fromState = from;
                 Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - 1, from.getLocation().getBlockZ());
-                if(Structure.isMaterialWeak(to.getType()))
+                if (Structure.isMaterialWeak(to.getType())) {
                     to.breakNaturally();
+                }
                 to.setType(from.getType());
                 to.setData(from.getBlock().getData());
 
-                switch (from.getType())
-                {
-                    case COMMAND:
-                    {
-                        CommandBlock fromBlock = (CommandBlock) fromState;
-                        CommandBlock toBlock = (CommandBlock) to.getState();
-                        toBlock.setCommand(fromBlock.getCommand());
-                        toBlock.update(); //I guess it should be like this
+                switch (from.getType()) {
+                    case COMMAND: {
+                        moveCommandBlock(fromState, to);
                         break;
                     }
-                    case MOB_SPAWNER:
-                    {
-                        CreatureSpawner fromSpawner = (CreatureSpawner) fromState;
-                        CreatureSpawner toSpawner = (CreatureSpawner) to.getState();
-                        toSpawner.setDelay(fromSpawner.getDelay());
-                        toSpawner.setSpawnedType(fromSpawner.getSpawnedType());
-                        toSpawner.update(); //Added by tubelius 20140512
+                    case MOB_SPAWNER: {
+                        moveCreatureSpawner(fromState, to);
                         break;
                     }
-                    case REDSTONE_TORCH_ON:
-                    {
-                        // Set it to air to make it get forcefully placed back
-                        // and trigger redstone
+                    case REDSTONE_TORCH_ON: {
+                        //Set it to air to make it get forcefully placed back and trigger redstone
                         to.setType(Material.AIR);
                         break;
                     }
                     case CHEST:
-                    case TRAPPED_CHEST:
-                    {
-                        Chest fromChest = (Chest) fromState;
-                        Chest toChest = (Chest) to.getState();
-                        Inventory fromInventory = fromChest.getInventory();
-                        Inventory toInventory = toChest.getInventory();
-                        if (fromInventory.getSize() == toInventory.getSize()) {   
-                            //chest is complete --> move content
-                            toInventory.setContents(fromInventory.getContents());
-                            fromInventory.clear();
-                            //the other side of double chest may have been skipped when the new chest was incomplete --> delete that side
-                            if (from.getType() == current.originalBlock.getBlock().getRelative(BlockFace.NORTH).getType()) {
-                                current.originalBlock.getBlock().getRelative(BlockFace.NORTH).setType(Material.AIR);
-                            } else if (from.getType() == current.originalBlock.getBlock().getRelative(BlockFace.EAST).getType()) {
-                                current.originalBlock.getBlock().getRelative(BlockFace.EAST).setType(Material.AIR);
-                            } else if (from.getType() == current.originalBlock.getBlock().getRelative(BlockFace.SOUTH).getType()) {
-                                current.originalBlock.getBlock().getRelative(BlockFace.SOUTH).setType(Material.AIR);
-                            } else if (from.getType() == current.originalBlock.getBlock().getRelative(BlockFace.WEST).getType()) {
-                                current.originalBlock.getBlock().getRelative(BlockFace.WEST).setType(Material.AIR);
-                            }
-                        } else {
-                            //maybe only one side of double chest has been moved (keep looping the blocks to finish the chest)
-                            //keep the old block until the chest is complete and inventory has been moved
-                            removeOldBlock = false;
-                        }
+                    case TRAPPED_CHEST: {
+                        removeOldBlock = moveChest(fromState, to, current, from);
                         break;
                     }
-                    case BED_BLOCK:
-                    {
+                    case BED_BLOCK: {
                         removeOldBlock = false; //we have a special processing for the bed
-                        Bed fromBed = (Bed) from.getData();
-                        
-                        if (fromBed.isHeadOfBed() == false) {    
-                            //move the whole bed when we find foot part of bed
-                            to.setTypeIdAndData(fromState.getTypeId(), fromState.getRawData(), false);
-                            Block fromBlockHead = from.getBlock().getRelative(fromBed.getFacing());                            
-                            Block toBlockHead = to.getRelative(fromBed.getFacing());
-                            toBlockHead.setTypeIdAndData(fromBlockHead.getTypeId(), fromBlockHead.getState().getRawData(), false);
-
-                            //remove both old blocks
-                            from.getBlock().getRelative(fromBed.getFacing()).setType(Material.AIR);
-                            from.setType(Material.AIR);
-                            
-                            //remove the bed entities that appear for some reason when moving the bed
-                            removeItems(Material.BED , from.getLocation(), 2);
-                        }
+                        moveBed(fromState, to, from);
                         break;
                     }
                     case FURNACE:
-                    case BURNING_FURNACE:
-                    {
-                        Furnace fromFurnace = (Furnace) fromState;
-                        Furnace toFurnace = (Furnace) to.getState();
-                        Inventory fromInventory = fromFurnace.getInventory();
-                        Inventory toInventory = toFurnace.getInventory();
-                        toInventory.setContents(fromInventory.getContents());
-                        toFurnace.setBurnTime(fromFurnace.getBurnTime());
-                        toFurnace.setCookTime(fromFurnace.getCookTime());
-                        fromInventory.clear();
+                    case BURNING_FURNACE: {
+                        moveFurnace(fromState, to);
                         break;
                     }
-                    case HOPPER:
-                    {
-                        Hopper fromHopper = (Hopper) fromState;
-                        Hopper toHopper = (Hopper) to.getState();
-                        Inventory fromInventory = fromHopper.getInventory();
-                        Inventory toInventory = toHopper.getInventory();
-                        toInventory.setContents(fromInventory.getContents());
-                        fromInventory.clear();
+                    case HOPPER: {
+                        moveHopper(fromState, to);
                         break;
                     }
-                    case DROPPER:
-                    {
-                        Dropper fromDropper = (Dropper) fromState;
-                        Dropper toDropper = (Dropper) to.getState();
-                        Inventory fromInventory = fromDropper.getInventory();
-                        Inventory toInventory = toDropper.getInventory();
-                        toInventory.setContents(fromInventory.getContents());
-                        fromInventory.clear();
+                    case DROPPER: {
+                        moveDropper(fromState, to);
                         break;
                     }
-                    case BEACON:
-                    {
-                        Beacon fromBeacon = (Beacon) fromState;
-                        Beacon toBeacon = (Beacon) to.getState();
-                        Inventory fromInventory = fromBeacon.getInventory();
-                        Inventory toInventory = toBeacon.getInventory();
-                        toInventory.setContents(fromInventory.getContents());
-                        fromInventory.clear();
+                    case BEACON: {
+                        moveBeacon(fromState, to);
                         break;
                     }
-                    case DISPENSER:
-                    {
-                        Dispenser fromDispenser = (Dispenser) fromState;
-                        Dispenser toDispenser = (Dispenser) to.getState();
-                        Inventory fromInventory = fromDispenser.getInventory();
-                        Inventory toInventory = toDispenser.getInventory();
-                        toInventory.setContents(fromInventory.getContents());
-                        fromInventory.clear();
+                    case DISPENSER: {
+                        moveDispenser(fromState, to);
                         break;
                     }
-                    case JUKEBOX:
-                    {
-                        Jukebox fromJukebox = (Jukebox) fromState;
-                        Jukebox toJukebox = (Jukebox) to.getState();
-                        if (fromJukebox.isPlaying())
-                        {
-                            toJukebox.setPlaying(fromJukebox.getPlaying());
-                        }
-                        fromJukebox.setPlaying(null);
+                    case JUKEBOX: {
+                        moveJukebox(fromState, to);
                         break;
                     }
-                    case NOTE_BLOCK:
-                    {
+                    case NOTE_BLOCK: {
                         NoteBlock fromNoteBlock = (NoteBlock) fromState;
                         NoteBlock toNoteBlock = (NoteBlock) to.getState();
                         toNoteBlock.setNote(fromNoteBlock.getNote());
                         break;
                     }
                     case PISTON_BASE:
-                    case PISTON_STICKY_BASE:
-                    {
-                        PistonBaseMaterial fromPiston = (PistonBaseMaterial) fromState.getData();
-                        PistonBaseMaterial toPiston = (PistonBaseMaterial) to.getState().getData();
-                        toPiston.setFacingDirection(fromPiston.getFacing());
-                        toPiston.setPowered(fromPiston.isPowered());
+                    case PISTON_STICKY_BASE: {
+                        movePiston(fromState, to);
                         break;
                     }
                     default:
                         break;
                 }
-//                from.getBlock().setType(Material.AIR);
                 if (removeOldBlock) { from.getBlock().setType(Material.AIR); }
                 i.remove();
             }
@@ -524,13 +425,9 @@ public class Structure
         {
             StructureBlock current = i.next();
             BlockState fromState = blocks.get(current.location).originalBlock;
-            //Location aboveLocation = new Location(current.location.getX(), current.location.getY() + 1, current.location.getZ());
-            //BlockState fromStateAbove = null;
-            //if (blocks.containsKey(aboveLocation))
-                //fromStateAbove = blocks.get(aboveLocation).originalBlock;
             
             Block to = world.getBlockAt(current.location.getX(), current.location.getY() - 1, current.location.getZ());
-            if(Structure.isMaterialWeak(to.getType()))
+            if (Structure.isMaterialWeak(to.getType()))
                 to.breakNaturally();
             
             if (fromState.getType() != Material.WOODEN_DOOR && fromState.getType() != Material.IRON_DOOR_BLOCK)
@@ -552,8 +449,6 @@ public class Structure
                     i.remove();
                     continue;
                 }
-                // if(fromState.getType() == Material.FLOWER_POT)
-                // ((FlowerPot)fromState.getData()).setContents(null);
                 to.setType(fromState.getType());
                 to.setData(fromState.getBlock().getData());
             }
@@ -734,6 +629,133 @@ public class Structure
         blocks.clear();
         blocks = temp;
         moveDate = new Date();
+    }
+
+    private void moveCreatureSpawner(BlockState fromState, Block to) {
+        CreatureSpawner fromSpawner = (CreatureSpawner) fromState;
+        CreatureSpawner toSpawner = (CreatureSpawner) to.getState();
+        toSpawner.setDelay(fromSpawner.getDelay());
+        toSpawner.setSpawnedType(fromSpawner.getSpawnedType());
+        toSpawner.update();
+    }
+
+    private void moveCommandBlock(BlockState fromState, Block to) {
+        CommandBlock fromBlock = (CommandBlock) fromState;
+        CommandBlock toBlock = (CommandBlock) to.getState();
+        toBlock.setCommand(fromBlock.getCommand());
+        toBlock.update();
+    }
+
+    private void movePiston(BlockState fromState, Block to) {
+        PistonBaseMaterial fromPiston = (PistonBaseMaterial) fromState.getData();
+        PistonBaseMaterial toPiston = (PistonBaseMaterial) to.getState().getData();
+        toPiston.setFacingDirection(fromPiston.getFacing());
+        toPiston.setPowered(fromPiston.isPowered());
+    }
+
+    private void moveJukebox(BlockState fromState, Block to) {
+        Jukebox fromJukebox = (Jukebox) fromState;
+        Jukebox toJukebox = (Jukebox) to.getState();
+        if (fromJukebox.isPlaying())
+        {
+            toJukebox.setPlaying(fromJukebox.getPlaying());
+        }
+        fromJukebox.setPlaying(null);
+    }
+
+    private void moveDispenser(BlockState fromState, Block to) {
+        Dispenser fromDispenser = (Dispenser) fromState;
+        Dispenser toDispenser = (Dispenser) to.getState();
+        Inventory fromInventory = fromDispenser.getInventory();
+        Inventory toInventory = toDispenser.getInventory();
+        toInventory.setContents(fromInventory.getContents());
+        fromInventory.clear();
+    }
+
+    private void moveBeacon(BlockState fromState, Block to) {
+        Beacon fromBeacon = (Beacon) fromState;
+        Beacon toBeacon = (Beacon) to.getState();
+        Inventory fromInventory = fromBeacon.getInventory();
+        Inventory toInventory = toBeacon.getInventory();
+        toInventory.setContents(fromInventory.getContents());
+        fromInventory.clear();
+    }
+
+    private void moveDropper(BlockState fromState, Block to) {
+        Dropper fromDropper = (Dropper) fromState;
+        Dropper toDropper = (Dropper) to.getState();
+        Inventory fromInventory = fromDropper.getInventory();
+        Inventory toInventory = toDropper.getInventory();
+        toInventory.setContents(fromInventory.getContents());
+        fromInventory.clear();
+    }
+
+    private void moveHopper(BlockState fromState, Block to) {
+        Hopper fromHopper = (Hopper) fromState;
+        Hopper toHopper = (Hopper) to.getState();
+        Inventory fromInventory = fromHopper.getInventory();
+        Inventory toInventory = toHopper.getInventory();
+        toInventory.setContents(fromInventory.getContents());
+        fromInventory.clear();
+    }
+
+    private void moveFurnace(BlockState fromState, Block to) {
+        Furnace fromFurnace = (Furnace) fromState;
+        Furnace toFurnace = (Furnace) to.getState();
+        Inventory fromInventory = fromFurnace.getInventory();
+        Inventory toInventory = toFurnace.getInventory();
+        toInventory.setContents(fromInventory.getContents());
+        toFurnace.setBurnTime(fromFurnace.getBurnTime());
+        toFurnace.setCookTime(fromFurnace.getCookTime());
+        fromInventory.clear();
+    }
+
+    @SuppressWarnings("deprecation")
+    private void moveBed(BlockState fromState, Block to, BlockState from) {
+        Bed fromBed = (Bed) from.getData();
+        
+        if (fromBed.isHeadOfBed() == false) {    
+            //move the whole bed when we find foot part of bed
+            to.setTypeIdAndData(fromState.getTypeId(), fromState.getRawData(), false);
+            Block fromBlockHead = from.getBlock().getRelative(fromBed.getFacing());                            
+            Block toBlockHead = to.getRelative(fromBed.getFacing());
+            toBlockHead.setTypeIdAndData(fromBlockHead.getTypeId(), fromBlockHead.getState().getRawData(), false);
+
+            //remove both old blocks
+            from.getBlock().getRelative(fromBed.getFacing()).setType(Material.AIR);
+            from.setType(Material.AIR);
+            
+            //remove the bed entities that appear for some reason when moving the bed
+            removeItems(Material.BED , from.getLocation(), 2);
+        }
+    }
+
+    private boolean moveChest(BlockState fromState, Block to, StructureBlock current, BlockState from) {
+        //finishes the moving the chest, returns removeOldBlock
+        Chest fromChest = (Chest) fromState;
+        Chest toChest = (Chest) to.getState();
+        Inventory fromInventory = fromChest.getInventory();
+        Inventory toInventory = toChest.getInventory();
+        if (fromInventory.getSize() == toInventory.getSize()) {   
+            //chest is complete --> move content
+            toInventory.setContents(fromInventory.getContents());
+            fromInventory.clear();
+            //the other side of double chest may have been skipped when the new chest was incomplete --> delete that side
+            if (from.getType() == current.originalBlock.getBlock().getRelative(BlockFace.NORTH).getType()) {
+                current.originalBlock.getBlock().getRelative(BlockFace.NORTH).setType(Material.AIR);
+            } else if (from.getType() == current.originalBlock.getBlock().getRelative(BlockFace.EAST).getType()) {
+                current.originalBlock.getBlock().getRelative(BlockFace.EAST).setType(Material.AIR);
+            } else if (from.getType() == current.originalBlock.getBlock().getRelative(BlockFace.SOUTH).getType()) {
+                current.originalBlock.getBlock().getRelative(BlockFace.SOUTH).setType(Material.AIR);
+            } else if (from.getType() == current.originalBlock.getBlock().getRelative(BlockFace.WEST).getType()) {
+                current.originalBlock.getBlock().getRelative(BlockFace.WEST).setType(Material.AIR);
+            }
+            return true;    //removeOldBlock
+        } else {
+            //maybe only one side of double chest has been moved (keep looping the blocks to finish the chest)
+            //keep the old block until the chest is complete and inventory has been moved
+            return false;   //removeOldBlock
+        }
     }
 
     private void removeItems(Material material, org.bukkit.Location location, float maximumDistance) {
