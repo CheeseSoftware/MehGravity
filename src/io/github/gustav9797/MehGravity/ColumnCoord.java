@@ -13,21 +13,20 @@ public class ColumnCoord
 	}
 
 	@Override
-	public boolean equals(Object o)
+	public boolean equals(Object object)
 	{
-		if (this == o)
-			return true;
-		if (!(o instanceof ColumnCoord))
-			return false;
-		ColumnCoord key = (ColumnCoord) o;
+		if (this == object) { return true; }
+		if (!(object instanceof ColumnCoord)) { return false; }
+		ColumnCoord key = (ColumnCoord) object;
 		return x == key.x && z == key.z;
 	}
 
 	@Override
 	public int hashCode()
 	{
-		int result = x;
-		result = 31 * result + z;
-		return result;
+//		int result = x;
+//		result = 31 * result + z;
+//		return result;
+		return 31 * x + z;
 	}
 }
