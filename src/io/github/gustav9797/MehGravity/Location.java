@@ -22,12 +22,9 @@ public class Location
 	@Override
 	public boolean equals(Object other)
 	{
-		if (other == null)
-			return false;
-		if (other == this)
-			return true;
-		if (!(other instanceof Location))
-			return false;
+		if (other == null)                {   return false;   }
+		if (other == this)                {   return true;    }
+		if (!(other instanceof Location)) {   return false;   }
 		Location l = (Location) other;
 		return x_ == l.x_ && y_ == l.y_ && z_ == l.z_;
 	}
