@@ -24,9 +24,6 @@ public class ColumnCoord
 	@Override
 	public int hashCode()
 	{
-//		int result = x;
-//		result = 31 * result + z;
-//		return result;
 		return 31 * x + z;
 	}
 }

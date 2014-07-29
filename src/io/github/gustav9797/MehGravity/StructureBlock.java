@@ -10,8 +10,8 @@ public class StructureBlock
 
 	public StructureBlock(int partOfStructureId, Location location, BlockState originalBlock)
 	{
-		this.partOfStructureId = partOfStructureId;
-		this.location = location;
-		this.originalBlock = originalBlock;
+		this.partOfStructureId    = partOfStructureId;
+		this.location             = location;
+		this.originalBlock        = originalBlock;
 	}
 }

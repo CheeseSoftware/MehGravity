@@ -34,7 +34,7 @@ class UpdateStructures extends BukkitRunnable
 				if (difference > 200)
 				{
 					World world = toCheck.world;
-					int blocksFall = toCheck.FindMovingSpaceDown(world);
+					int blocksFall = toCheck.getMaximumFallDistance(world);
 					if (blocksFall >= 1 && toCheck.Size() > 0)
 					{
 						toCheck.SortLevels();
@@ -43,26 +43,22 @@ class UpdateStructures extends BukkitRunnable
 					}
 					else
 					{
-						// Now we should do one last gravity check and remove
-						// the structure
+						//one last gravity check and remove the structure
 						StructureBlock partOfStructure = toCheck.getExampleBlock();
 						if (partOfStructure != null)
 						{
 							Structure newStructure = structureHandler.CreateStructure(partOfStructure.originalBlock.getBlock());
 							i.remove();
-							if (newStructure != null && newStructure.FindMovingSpaceDown(world) >= 1)
+							if (newStructure != null && newStructure.getMaximumFallDistance(world) >= 1)
 								toAdd.add(newStructure);
 						}
 						else
 							i.remove();
-						// else
-						// Bukkit.getServer().getPlayer("gustav9797").sendMessage("could not move down structure! D:");
 					}
 				}
 			}
 		}
-		while (toAdd.size() > 0)
-		{
+		while (toAdd.size() > 0) {
 			Structure structure = toAdd.poll();
 			if (structure != null)
 				structureHandler.AddStructure(structure);

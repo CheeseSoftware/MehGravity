@@ -6,13 +6,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 class GravityCheckAroundLater extends BukkitRunnable
 {
-	Block startBlock;
+	Block      startBlock;
 	MehGravity plugin;
 
 	public GravityCheckAroundLater(MehGravity plugin, Block startBlock)
 	{
-		this.startBlock = startBlock;
-		this.plugin = plugin;
+		this.startBlock   = startBlock;
+		this.plugin       = plugin;
 	}
 
 	@Override

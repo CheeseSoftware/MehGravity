@@ -50,7 +50,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 
 		if (!configFile.exists())
 		{
-			try
+			try  //Are we expecting createNewFile to fail? If not, then maybe there's no point to have a try here? --tubelius 20140729 
 			{
 				configFile.createNewFile();
 			}
@@ -107,63 +107,68 @@ public final class MehGravity extends JavaPlugin implements Listener
 			this.useMetrics = config.getBoolean("useMetrics");
 			MehGravity.blockLimit = config.getInt("blocklimit");
 			MehGravity.gravityWorlds = config.getStringList("gravityWorlds");
-
-			MehGravity.staticBlocks = new HashSet<Material>();
-			List<String> temp = config.getStringList("staticBlocks");
-			if (temp != null)
-			{
-				for (String s : temp)
-				{
-					Material m = Material.getMaterial(s);
-					if (m != null)
-						MehGravity.staticBlocks.add(m);
-				}
-			}
-
-			MehGravity.nonStickyBlocks = new HashSet<Material>();
-			temp = config.getStringList("nonStickyBlocks");
-			if (temp != null)
-			{
-				for (String s : temp)
-				{
-					Material m = Material.getMaterial(s);
-					if (m != null)
-						MehGravity.nonStickyBlocks.add(m);
-				}
-			}
-
-			MehGravity.nonStickyBlocksAgainstEachother = new HashMap<Material, HashSet<Material>>();
-			HashMap<Material, HashSet<Material>> shortName = MehGravity.nonStickyBlocksAgainstEachother;
-			temp = config.getStringList("nonStickyBlocksAgainstEachother");
-			if (temp != null)
-			{
-				for (String s : temp)
-				{
-					String[] materials = s.split("-");
-					if (materials.length == 2)
-					{
-						Material one = Material.getMaterial(materials[0]);
-						Material two = Material.getMaterial(materials[1]);
-						if (one != null && two != null)
-						{
-							if(shortName.containsKey(one))
-								shortName.get(one).add(two);
-							else
-								shortName.put(one, new HashSet<Material>(Arrays.asList(two)));
-						}
-						else
-							this.getServer().getLogger().warning("Could not load the nonstickypair " + s);
-					}
-				}
-			}
+			setListStaticBlocks(config);
+			setListNonStickyBlocks(config);
+			setListNonStickyBlocksAgainstEachother(config);
 		}
-		catch (IOException | InvalidConfigurationException e)
-		{
+		catch (IOException | InvalidConfigurationException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void Save()
+	private void setListStaticBlocks(YamlConfiguration config) {
+        MehGravity.staticBlocks = new HashSet<Material>();
+        List<String> listFromConfig = config.getStringList("staticBlocks");
+        if (listFromConfig != null)
+        {
+            for (String s : listFromConfig)
+            {
+                Material m = Material.getMaterial(s);
+                if (m != null)
+                    MehGravity.staticBlocks.add(m);
+            }
+        }
+    }
+
+    private void setListNonStickyBlocks(YamlConfiguration config) {
+        MehGravity.nonStickyBlocks = new HashSet<Material>();
+        List<String> listFromConfig = config.getStringList("nonStickyBlocks");
+        if (listFromConfig != null)
+        {
+            for (String s : listFromConfig)
+            {
+                Material m = Material.getMaterial(s);
+                if (m != null)
+                    MehGravity.nonStickyBlocks.add(m);
+            }
+        }
+    }
+
+    private void setListNonStickyBlocksAgainstEachother(YamlConfiguration config) {
+        MehGravity.nonStickyBlocksAgainstEachother = new HashMap<Material, HashSet<Material>>();
+        HashMap<Material, HashSet<Material>> shortName = MehGravity.nonStickyBlocksAgainstEachother;
+        List<String> listFromConfig = config.getStringList("nonStickyBlocksAgainstEachother");
+        if (listFromConfig != null) {
+            for (String s : listFromConfig) {
+                String[] materials = s.split("-");
+                if (materials.length == 2) {
+                    Material one = Material.getMaterial(materials[0]);
+                    Material two = Material.getMaterial(materials[1]);
+                    if (one != null && two != null) {
+                        if (shortName.containsKey(one)) {
+                            shortName.get(one).add(two);
+                        } else {
+                            shortName.put(one, new HashSet<Material>(Arrays.asList(two)));
+                        }
+                    } else {
+                        this.getServer().getLogger().warning("Could not load the nonstickypair " + s);
+                    }
+                }
+            }
+        }
+    }
+
+    public void Save()
 	{
 		YamlConfiguration config = new YamlConfiguration();
 		try
@@ -173,8 +178,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 			config.set("gravityWorlds", MehGravity.gravityWorlds);
 			
 			HashSet<String> temp = new HashSet<String>();
-			for (Material m : MehGravity.staticBlocks)
-				temp.add(m.name());
+			for (Material m : MehGravity.staticBlocks) { temp.add(m.name()); }
 			config.set("staticBlocks", temp);
 			
 			temp = new HashSet<String>();
@@ -182,17 +186,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 				temp.add(m.name());
 			config.set("nonStickyBlocks", temp);
 			
-			temp = new HashSet<String>();
-			for(Material key : MehGravity.nonStickyBlocksAgainstEachother.keySet())
-			{
-				HashSet<Material> values = MehGravity.nonStickyBlocksAgainstEachother.get(key);
-				for(Material value : values)
-				{
-					String out = key.name() + "-" + value.name();
-					temp.add(out);
-				}
-			}
-			config.set("nonStickyBlocksAgainstEachother", temp);
+			saveConfigNonStickyBlocksAgainstEachother(config);
 			
 			config.save(configFile);
 		}
@@ -202,7 +196,21 @@ public final class MehGravity extends JavaPlugin implements Listener
 		}
 	}
 
-	public void saveDefaultConfig()
+	private void saveConfigNonStickyBlocksAgainstEachother(YamlConfiguration config) {
+	    HashSet<String> temp = new HashSet<String>();
+        for(Material key : MehGravity.nonStickyBlocksAgainstEachother.keySet())
+        {
+            HashSet<Material> values = MehGravity.nonStickyBlocksAgainstEachother.get(key);
+            for(Material value : values)
+            {
+                String out = key.name() + "-" + value.name();
+                temp.add(out);
+            }
+        }
+        config.set("nonStickyBlocksAgainstEachother", temp);
+    }
+
+    public void saveDefaultConfig()
 	{
 		if (configFile == null)
 			configFile = new File(getDataFolder(), "config.yml");
@@ -212,8 +220,14 @@ public final class MehGravity extends JavaPlugin implements Listener
 
 	public boolean HasPerms(Player player)
 	{
-		if ((!player.isPermissionSet("mehgravity.nocheck") || (player.isPermissionSet("mehgravity.nocheck") && !player.hasPermission("mehgravity.nocheck"))))
+	    //Permission is not set OR it is set, but this player doesn't have it 
+		if (    !player.isPermissionSet("mehgravity.nocheck") 
+                || (    player.isPermissionSet("mehgravity.nocheck") 
+                    &&  !player.hasPermission("mehgravity.nocheck")
+                )
+	        ) {
 			return true;
+		}
 		return false;
 	}
 

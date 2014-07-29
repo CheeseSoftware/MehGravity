@@ -34,34 +34,24 @@ public class Location
 	{
 		return x_ ^ y_ * 137 ^ z_ * 11317;
 	}
-
-	public int getX()
-	{
+	//get coordinates
+	public int getX() {
 		return x_;
 	}
-
-	public int getY()
-	{
+	public int getY() {
 		return y_;
 	}
-
-	public int getZ()
-	{
+	public int getZ() {
 		return z_;
 	}
-
-	public void setX(int x)
-	{
+	//set coordinates
+	public void setX(int x) {
 		x_ = x;
 	}
-
-	public void setY(int y)
-	{
+	public void setY(int y) {
 		y_ = y;
 	}
-
-	public void setZ(int z)
-	{
+	public void setZ(int z) {
 		z_ = z;
 	}
 }

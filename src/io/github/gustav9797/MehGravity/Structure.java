@@ -62,89 +62,86 @@ public class Structure
     static final ArrayList<Material> weakBlocks = new ArrayList<Material>()
     {
         {
-            add(Material.SNOW);
-            add(Material.WATER);
-            add(Material.LAVA);
-            add(Material.RED_ROSE);
-            add(Material.YELLOW_FLOWER);
-            add(Material.CARPET);
-            add(Material.FIRE);
-            add(Material.LONG_GRASS);
-            add(Material.DEAD_BUSH);
             add(Material.BROWN_MUSHROOM);
-            add(Material.RED_MUSHROOM);
-            
-            // Added by tubelius 20140419
             add(Material.CAKE_BLOCK);
+            add(Material.CARPET);
             add(Material.CARROT);
             add(Material.CROPS);
+            add(Material.DEAD_BUSH);
             add(Material.DOUBLE_PLANT);
+            add(Material.FIRE);
+            add(Material.LAVA);
+            add(Material.LONG_GRASS);
             add(Material.MELON_STEM);
             add(Material.POTATO);
             add(Material.PUMPKIN_STEM);
+            add(Material.RED_MUSHROOM);
+            add(Material.RED_ROSE);
             add(Material.REDSTONE_WIRE);
             add(Material.SAPLING);
+            add(Material.SNOW);
             add(Material.STATIONARY_LAVA);
             add(Material.STATIONARY_WATER);
             add(Material.STONE_BUTTON);
             add(Material.TRIPWIRE);
             add(Material.TRIPWIRE_HOOK);
+            add(Material.WATER);
             add(Material.WATER_LILY);
             add(Material.WOOD_BUTTON);
+            add(Material.YELLOW_FLOWER);
         }
     };
 
     // List of blocks that pop/break when a supporting block is removed
     @SuppressWarnings("serial")
-    static final ArrayList<Material> annoyingBlocks = new ArrayList<Material>()
-    {
+    static final ArrayList<Material> annoyingBlocks = new ArrayList<Material>() {
         {
-            add(Material.WOODEN_DOOR);
-            add(Material.IRON_DOOR_BLOCK);
-            add(Material.TRAP_DOOR);
-            add(Material.TORCH);
-            add(Material.SAPLING);
-            add(Material.LONG_GRASS);
-            add(Material.YELLOW_FLOWER);
-            add(Material.RED_ROSE);
+            add(Material.ACTIVATOR_RAIL);
             add(Material.BROWN_MUSHROOM);
-            add(Material.RED_MUSHROOM);
-            add(Material.LADDER);
-            add(Material.SNOW);
-            add(Material.VINE);
-            add(Material.WATER_LILY);
+            add(Material.CACTUS);
             add(Material.CARPET);
-            add(Material.PAINTING);
-            add(Material.SIGN_POST);
-            add(Material.WALL_SIGN);
-            add(Material.ITEM_FRAME);
-            add(Material.FLOWER_POT);
-            add(Material.LEVER);
-            add(Material.STONE_PLATE);
-            add(Material.WOOD_PLATE);
-            add(Material.REDSTONE_TORCH_OFF);
-            add(Material.REDSTONE_TORCH_ON);
-            add(Material.STONE_BUTTON);
-            add(Material.TRIPWIRE_HOOK);
-            add(Material.WOOD_BUTTON);
-            add(Material.GOLD_PLATE);
-            add(Material.IRON_PLATE);
             add(Material.DAYLIGHT_DETECTOR);
-            add(Material.REDSTONE_WIRE);
-            add(Material.REDSTONE_COMPARATOR);
-            add(Material.REDSTONE_COMPARATOR_OFF);
-            add(Material.REDSTONE_COMPARATOR_ON);
+            add(Material.DETECTOR_RAIL);
             add(Material.DIODE);
             add(Material.DIODE_BLOCK_OFF);
             add(Material.DIODE_BLOCK_ON);
-            add(Material.RAILS);
-            add(Material.POWERED_RAIL);
-            add(Material.DETECTOR_RAIL);
-            add(Material.ACTIVATOR_RAIL);
-            add(Material.TRIPWIRE);
             add(Material.FLOWER_POT);
-            add(Material.CACTUS);
+            add(Material.FLOWER_POT);
+            add(Material.GOLD_PLATE);
+            add(Material.IRON_DOOR_BLOCK);
+            add(Material.IRON_PLATE);
+            add(Material.ITEM_FRAME);
+            add(Material.LADDER);
+            add(Material.LEVER);
+            add(Material.LONG_GRASS);
+            add(Material.PAINTING);
+            add(Material.POWERED_RAIL);
+            add(Material.RAILS);
+            add(Material.RED_MUSHROOM);
+            add(Material.RED_ROSE);
+            add(Material.REDSTONE_COMPARATOR);
+            add(Material.REDSTONE_COMPARATOR_OFF);
+            add(Material.REDSTONE_COMPARATOR_ON);
+            add(Material.REDSTONE_TORCH_OFF);
+            add(Material.REDSTONE_TORCH_ON);
+            add(Material.REDSTONE_WIRE);
+            add(Material.SAPLING);
+            add(Material.SIGN_POST);
             add(Material.SKULL);
+            add(Material.SNOW);
+            add(Material.STONE_BUTTON);
+            add(Material.STONE_PLATE);
+            add(Material.TORCH);
+            add(Material.TRAP_DOOR);
+            add(Material.TRIPWIRE);
+            add(Material.TRIPWIRE_HOOK);
+            add(Material.WALL_SIGN);
+            add(Material.WATER_LILY);
+            add(Material.VINE);
+            add(Material.WOOD_BUTTON);
+            add(Material.WOOD_PLATE);
+            add(Material.WOODEN_DOOR);
+            add(Material.YELLOW_FLOWER);
         }
     };
 
@@ -175,8 +172,9 @@ public class Structure
 
     public void AddBlock(BlockState blockState, Location location)
     {
-        if (!blocks.containsKey(location))
+        if (!blocks.containsKey(location)) {
             blocks.put(location, new StructureBlock(id, location, blockState));
+        }
     }
 
     public void SortLevels()
@@ -249,8 +247,9 @@ public class Structure
         return blocks.size();
     }
 
-    public int FindMovingSpaceDown(World world)
+    public int getMaximumFallDistance(World world)//FindMovingSpaceDown(World world)
     {
+        //Check maximum fall distance for each column per X&Z coordinate
         Map<ColumnCoord, Integer> columnsMinHeight = new HashMap<ColumnCoord, Integer>();
         Map<ColumnCoord, Integer> columnsMaxHeight = new HashMap<ColumnCoord, Integer>();
 
@@ -273,43 +272,18 @@ public class Structure
             }
         }
 
+        //Calculate & return the maximum fall distance for whole structure based on the column data
+        return getMaximumFallDistance(columnsMinHeight,columnsMaxHeight);
+    }
+
+    private int getMaximumFallDistance(Map<ColumnCoord, Integer> columnsMinHeight, Map<ColumnCoord, Integer> columnsMaxHeight) {
         int currentMaxFall = Integer.MAX_VALUE;
-        for (Map.Entry<ColumnCoord, Integer> entry : columnsMaxHeight.entrySet())
-        {
+        for (Map.Entry<ColumnCoord, Integer> entry : columnsMaxHeight.entrySet()) { //Loop columns in each X&Z coordinate
             int minY = columnsMinHeight.get(entry.getKey());
             int maxY = entry.getValue();
-            for (int currentY = maxY; currentY >= minY; currentY--)
-            {
-                if (isMaterialWeak(world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType()))
-                {
-                    int tempCurrentMaxFall = 0;
-                    for (int y = currentY - 1; true; y--)
-                    {
-                        Material currentBlockMaterial = world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType();
-                        if (y < 0) {
-                            currentMaxFall = Math.min(1024, currentMaxFall);
-                            break;
-                        }
-                        else if (isMaterialWeak(currentBlockMaterial)) {
-                            tempCurrentMaxFall++;
-                        }
-                        else if (blocks.containsKey(new Location(entry.getKey().x, y, entry.getKey().z))) {
-                            currentY = y + 1;
-                            break;
-                        } 
-                        else {
-                            currentMaxFall = Math.min(tempCurrentMaxFall, currentMaxFall);
-                            int tempY = 0;
-                            for (tempY = y; tempY >= minY; tempY--) {
-                                if (blocks.containsKey(new Location(entry.getKey().x, tempY, entry.getKey().z))) {
-                                    currentY = tempY;
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-
-                    }
+            for (int currentY = maxY; currentY >= minY; currentY--) {   //Loop all blocks in a XZ-column from top to bottom 
+                if (isMaterialWeak(world.getBlockAt(entry.getKey().x, currentY - 1, entry.getKey().z).getType())) {
+                    currentMaxFall = getCurrentMaxFallForWeakBlock(currentY, entry, currentMaxFall, minY);
                 }
                 else if (blocks.containsKey(new Location(entry.getKey().x, currentY, entry.getKey().z))) {
                     if (!blocks.containsKey(new Location(entry.getKey().x, currentY - 1, entry.getKey().z))) {
@@ -324,6 +298,36 @@ public class Structure
         return currentMaxFall;
     }
 
+    private int getCurrentMaxFallForWeakBlock(int currentY, Entry<ColumnCoord, Integer> entry, int currentMaxFall, int minY) {
+        int tempCurrentMaxFall = 0;
+        for (int y = currentY - 1; true; y--) {
+            Material currentBlockMaterial = world.getBlockAt(entry.getKey().x, y, entry.getKey().z).getType();
+            if (y < 0) {
+                currentMaxFall = Math.min(1024, currentMaxFall);
+                break;
+            }
+            else if (isMaterialWeak(currentBlockMaterial)) {
+                tempCurrentMaxFall++;
+            }
+            else if (blocks.containsKey(new Location(entry.getKey().x, y, entry.getKey().z))) {
+                currentY = y + 1;
+                break;
+            } 
+            else {
+                currentMaxFall = Math.min(tempCurrentMaxFall, currentMaxFall);
+                int tempY = 0;
+                for (tempY = y; tempY >= minY; tempY--) {
+                    if (blocks.containsKey(new Location(entry.getKey().x, tempY, entry.getKey().z))) {
+                        currentY = tempY;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        return currentMaxFall;
+    }
+
     @SuppressWarnings("deprecation")
     public void MoveOneDown(World world)
     {
@@ -334,15 +338,13 @@ public class Structure
             StructureBlock current = i.next();
             boolean removeOldBlock = true;    //by default old blocks are removed, but there are exceptions
             
-            if (current.location.getY() - 1 < 0)
-            {
+            if (current.location.getY() - 1 < 0) {
                 current.originalBlock.getBlock().setType(Material.AIR);
                 i.remove();
                 continue;
             }
 
-            if (!sensitiveBlocks.contains(current.location))
-            {
+            if (!sensitiveBlocks.contains(current.location)) {
                 BlockState from = current.originalBlock;
                 BlockState fromState = from;
                 Block to = world.getBlockAt(from.getLocation().getBlockX(), from.getLocation().getBlockY() - 1, from.getLocation().getBlockZ());
@@ -351,261 +353,18 @@ public class Structure
                 }
                 to.setType(from.getType());
                 to.setData(from.getBlock().getData());
-
-                switch (from.getType()) {
-                    case COMMAND: {
-                        moveCommandBlock(fromState, to);
-                        break;
-                    }
-                    case MOB_SPAWNER: {
-                        moveCreatureSpawner(fromState, to);
-                        break;
-                    }
-                    case REDSTONE_TORCH_ON: {
-                        //Set it to air to make it get forcefully placed back and trigger redstone
-                        to.setType(Material.AIR);
-                        break;
-                    }
-                    case CHEST:
-                    case TRAPPED_CHEST: {
-                        removeOldBlock = moveChest(fromState, to, current, from);
-                        break;
-                    }
-                    case BED_BLOCK: {
-                        removeOldBlock = false; //we have a special processing for the bed
-                        moveBed(fromState, to, from);
-                        break;
-                    }
-                    case FURNACE:
-                    case BURNING_FURNACE: {
-                        moveFurnace(fromState, to);
-                        break;
-                    }
-                    case HOPPER: {
-                        moveHopper(fromState, to);
-                        break;
-                    }
-                    case DROPPER: {
-                        moveDropper(fromState, to);
-                        break;
-                    }
-                    case BEACON: {
-                        moveBeacon(fromState, to);
-                        break;
-                    }
-                    case DISPENSER: {
-                        moveDispenser(fromState, to);
-                        break;
-                    }
-                    case JUKEBOX: {
-                        moveJukebox(fromState, to);
-                        break;
-                    }
-                    case NOTE_BLOCK: {
-                        NoteBlock fromNoteBlock = (NoteBlock) fromState;
-                        NoteBlock toNoteBlock = (NoteBlock) to.getState();
-                        toNoteBlock.setNote(fromNoteBlock.getNote());
-                        break;
-                    }
-                    case PISTON_BASE:
-                    case PISTON_STICKY_BASE: {
-                        movePiston(fromState, to);
-                        break;
-                    }
-                    default:
-                        break;
-                }
+                removeOldBlock = moveSolidBlockDown(fromState, to, current, from, removeOldBlock);
                 if (removeOldBlock) { from.getBlock().setType(Material.AIR); }
                 i.remove();
             }
         }
         // Place all non-solid blocks back
-        i = sortedLevelBlocks.iterator();
-        while (i.hasNext())
-        {
-            StructureBlock current = i.next();
-            BlockState fromState = blocks.get(current.location).originalBlock;
-            
-            Block to = world.getBlockAt(current.location.getX(), current.location.getY() - 1, current.location.getZ());
-            if (Structure.isMaterialWeak(to.getType()))
-                to.breakNaturally();
-            
-            if (fromState.getType() != Material.WOODEN_DOOR && fromState.getType() != Material.IRON_DOOR_BLOCK)
-            {
-                boolean hasBlockToSitOn = false;
-                // Make sure we don't place a sensitive block in the air
-                for (int j = 0; j < Structure.adjacentBlocks.length; j++)
-                {
-                    Block toCheck = world.getBlockAt(to.getX() + Structure.adjacentBlocks[j].getX(), to.getY() + Structure.adjacentBlocks[j].getY(), to.getZ() + Structure.adjacentBlocks[j].getZ());
-                    if (toCheck.getType() != Material.AIR && !Structure.annoyingBlocks.contains(toCheck.getType()))
-                    {
-                        hasBlockToSitOn = true;
-                        break;
-                    }
-                }
-                if (!hasBlockToSitOn)
-                {
-                    to.setType(Material.AIR);
-                    i.remove();
-                    continue;
-                }
-                to.setType(fromState.getType());
-                to.setData(fromState.getBlock().getData());
-            }
-
-            switch (fromState.getType())
-            {
-                case SKULL:
-                {
-                    Skull toSkull = (Skull) to.getState();
-                    Skull fromSkull = (Skull) fromState;
-                    // toSkull.getBlock().setData(fromSkull.getData().getData());
-                    toSkull.setRotation(fromSkull.getRotation());
-                    toSkull.setSkullType(fromSkull.getSkullType());
-                    toSkull.update();
-                    break;
-                }
-                case FLOWER_POT:
-                {
-                    // I give up with flower pots
-
-                    // FlowerPot toFlowerPot
-                    // =(FlowerPot)to.getState().getData();
-                    // toFlowerPot.setContents(new
-                    // MaterialData(Material.RED_ROSE));
-                    break;
-                }
-                case TORCH:
-                {
-                    Torch fromTorch = (Torch) fromState.getData();
-                    Torch toTorch = (Torch) to.getState().getData();
-                    toTorch.setFacingDirection(fromTorch.getFacing());
-                    break;
-                }
-                case SIGN:
-                case SIGN_POST:
-                case WALL_SIGN:
-                {
-                    Sign fromSign = (Sign) fromState;
-                    Sign toSign = (Sign) to.getState();
-                    org.bukkit.material.Sign fromSignMat = (org.bukkit.material.Sign) fromSign.getData();
-                    toSign.setData(fromSignMat);
-                    String[] fromLines = fromSign.getLines();
-                    for (int index = 0; index < fromLines.length; index++)
-                    {
-                        toSign.setLine(index, fromLines[index]);
-                    }
-                    toSign.update();
-                    break;
-                }
-                case TRAP_DOOR:
-                {
-                    TrapDoor fromTrapDoor = (TrapDoor) fromState.getData();
-                    TrapDoor toTrapDoor = (TrapDoor) to.getState().getData();
-                    toTrapDoor.setOpen(fromTrapDoor.isOpen());
-                    break;
-                }
-                case WOODEN_DOOR:
-                {
-                    Block top = to.getRelative(BlockFace.UP, 1);
-                    if (top.getRelative(BlockFace.DOWN).getType() == Material.WOODEN_DOOR)
-                        break;
-
-                    to.setType(Material.WOODEN_DOOR);
-                    to.setData(fromState.getBlock().getData());
-
-                    top.setType(Material.WOODEN_DOOR);
-                    top.setData((byte) 8);
-
-                    // Now check if it's a double-door or single-door
-                    int directionFacing = to.getData();
-                    switch (directionFacing)
-                    {
-                        case 0: // Door is facing west
-                        {
-                            Block b = top.getRelative(BlockFace.NORTH);
-                            if (b.getType() == Material.WOODEN_DOOR)
-                                top.setData((byte) 9);
-                            break;
-                        }
-                        case 1: // Door is facing north
-                        {
-                            Block b = top.getRelative(BlockFace.EAST);
-                            if (b.getType() == Material.WOODEN_DOOR)
-                                top.setData((byte) 9);
-                            break;
-                        }
-                        case 2: // Door is facing east
-                        {
-                            Block b = top.getRelative(BlockFace.SOUTH);
-                            if (b.getType() == Material.WOODEN_DOOR)
-                                top.setData((byte) 9);
-                            break;
-                        }
-                        case 3: // Door is facing south
-                        {
-                            Block b = top.getRelative(BlockFace.WEST);
-                            if (b.getType() == Material.WOODEN_DOOR)
-                                top.setData((byte) 9);
-                            break;
-                        }
-                    }
-                    break;
-                }
-                case IRON_DOOR_BLOCK:
-                {
-                    Block top = to.getRelative(BlockFace.UP, 1);
-                    if (top.getRelative(BlockFace.DOWN).getType() == Material.IRON_DOOR_BLOCK)
-                        break;
-
-                    to.setType(Material.IRON_DOOR_BLOCK);
-                    to.setData(fromState.getBlock().getData());
-
-                    top.setType(Material.IRON_DOOR_BLOCK);
-                    top.setData((byte) 8);
-
-                    // Now check if it's a double-door or single-door
-                    int directionFacing = to.getData();
-                    switch (directionFacing)
-                    {
-                        case 0: // Door is facing west
-                        {
-                            Block b = top.getRelative(BlockFace.NORTH);
-                            if (b.getType() == Material.IRON_DOOR_BLOCK)
-                                top.setData((byte) 9);
-                            break;
-                        }
-                        case 1: // Door is facing north
-                        {
-                            Block b = top.getRelative(BlockFace.EAST);
-                            if (b.getType() == Material.IRON_DOOR_BLOCK)
-                                top.setData((byte) 9);
-                            break;
-                        }
-                        case 2: // Door is facing east
-                        {
-                            Block b = top.getRelative(BlockFace.SOUTH);
-                            if (b.getType() == Material.IRON_DOOR_BLOCK)
-                                top.setData((byte) 9);
-                            break;
-                        }
-                        case 3: // Door is facing south
-                        {
-                            Block b = top.getRelative(BlockFace.WEST);
-                            if (b.getType() == Material.IRON_DOOR_BLOCK)
-                                top.setData((byte) 9);
-                            break;
-                        }
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
-            i.remove();
-        }
-
+        MoveNonSolidBlocksOneDown(i);
         // Now move down location for each block in blocks
+        updateLocationForMovedBlocks();
+    }
+
+    private void updateLocationForMovedBlocks() {
         Iterator<Entry<Location, StructureBlock>> it = blocks.entrySet().iterator();
         HashMap<Location, StructureBlock> temp = new HashMap<Location, StructureBlock>();
         while (it.hasNext())
@@ -614,8 +373,6 @@ public class Structure
             it.remove();
             Location l = entry.getKey();
             l.setY(l.getY() - 1);
-            // l = entry.getValue().location;
-            // l.setY(l.getY() - 1);
 
             if (l.getY() - 1 < 0)
             {
@@ -629,6 +386,280 @@ public class Structure
         blocks.clear();
         blocks = temp;
         moveDate = new Date();
+    }
+
+    @SuppressWarnings("deprecation")
+    private void MoveNonSolidBlocksOneDown(Iterator<StructureBlock> i) {
+        i = sortedLevelBlocks.iterator();
+        while (i.hasNext())
+        {
+            
+            StructureBlock current = i.next();
+            BlockState fromState = blocks.get(current.location).originalBlock;
+            
+            Block to = world.getBlockAt(current.location.getX(), current.location.getY() - 1, current.location.getZ());
+            if (Structure.isMaterialWeak(to.getType())) { to.breakNaturally(); }
+            
+            if (fromState.getType() != Material.WOODEN_DOOR && fromState.getType() != Material.IRON_DOOR_BLOCK) {
+                boolean hasBlockToSitOn = false;
+                // Make sure we don't place a sensitive block in the air
+                for (int j = 0; j < Structure.adjacentBlocks.length; j++) {
+                    Block toCheck = world.getBlockAt(to.getX() + Structure.adjacentBlocks[j].getX(), to.getY() + Structure.adjacentBlocks[j].getY(), to.getZ() + Structure.adjacentBlocks[j].getZ());
+                    if (toCheck.getType() != Material.AIR && !Structure.annoyingBlocks.contains(toCheck.getType())) {
+                        hasBlockToSitOn = true;
+                        break;
+                    }
+                }
+                if (!hasBlockToSitOn) {
+                    to.setType(Material.AIR);
+                    i.remove();
+                    continue;
+                }
+                to.setType(fromState.getType());
+                to.setData(fromState.getBlock().getData());
+            }
+            moveNonSolidBlockDown(fromState, to, current);
+            i.remove();
+        }
+    }
+
+    private void moveNonSolidBlockDown(BlockState fromState, Block to, StructureBlock current) {
+        switch (fromState.getType())
+        {
+            case SKULL: {
+                moveSkull(fromState, to);
+                break;
+            }
+            case FLOWER_POT: {  //WIP !
+                moveFlowerPot(fromState, to);
+                break;
+            }
+            case TORCH: {
+                moveTorch(fromState, to);
+                break;
+            }
+            case SIGN:
+            case SIGN_POST:
+            case WALL_SIGN: {
+                moveWallSign(fromState, to);
+                break;
+            }
+            case TRAP_DOOR: {
+                moveTrapDoor(fromState, to);
+                break;
+            }
+            case WOODEN_DOOR: {
+                moveWoodenDoor(fromState, to);
+                break;
+            }
+            case IRON_DOOR_BLOCK: {
+                moveIronDoor(fromState, to);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    private void moveFlowerPot(BlockState fromState, Block to) {
+        // I give up with flower pots
+
+        // FlowerPot toFlowerPot
+        // =(FlowerPot)to.getState().getData();
+        // toFlowerPot.setContents(new
+        // MaterialData(Material.RED_ROSE));
+    }
+
+    private void moveTrapDoor(BlockState fromState, Block to) {
+        TrapDoor fromTrapDoor = (TrapDoor) fromState.getData();
+        TrapDoor toTrapDoor = (TrapDoor) to.getState().getData();
+        toTrapDoor.setOpen(fromTrapDoor.isOpen());
+    }
+
+    private void moveTorch(BlockState fromState, Block to) {
+        Torch fromTorch = (Torch) fromState.getData();
+        Torch toTorch = (Torch) to.getState().getData();
+        toTorch.setFacingDirection(fromTorch.getFacing());
+    }
+
+    private void moveSkull(BlockState fromState, Block to) {
+        Skull toSkull = (Skull) to.getState();
+        Skull fromSkull = (Skull) fromState;
+        toSkull.setRotation(fromSkull.getRotation());
+        toSkull.setSkullType(fromSkull.getSkullType());
+        toSkull.update();
+    }
+
+    private void moveWallSign(BlockState fromState, Block to) {
+        Sign fromSign = (Sign) fromState;
+        Sign toSign = (Sign) to.getState();
+        org.bukkit.material.Sign fromSignMat = (org.bukkit.material.Sign) fromSign.getData();
+        toSign.setData(fromSignMat);
+        String[] fromLines = fromSign.getLines();
+        for (int index = 0; index < fromLines.length; index++)
+        {
+            toSign.setLine(index, fromLines[index]);
+        }
+        toSign.update();
+    }
+
+    @SuppressWarnings("deprecation")
+    private void moveIronDoor(BlockState fromState, Block to) {
+        Block top = to.getRelative(BlockFace.UP, 1);
+        if (top.getRelative(BlockFace.DOWN).getType() != Material.IRON_DOOR_BLOCK) {
+            to.setType(Material.IRON_DOOR_BLOCK);
+            to.setData(fromState.getBlock().getData());
+    
+            top.setType(Material.IRON_DOOR_BLOCK);
+            top.setData((byte) 8);
+    
+            // Now check if it's a double-door or single-door
+            int directionFacing = to.getData();
+            switch (directionFacing)
+            {
+                case 0: // Door is facing west
+                {
+                    Block b = top.getRelative(BlockFace.NORTH);
+                    if (b.getType() == Material.IRON_DOOR_BLOCK)
+                        top.setData((byte) 9);
+                    break;
+                }
+                case 1: // Door is facing north
+                {
+                    Block b = top.getRelative(BlockFace.EAST);
+                    if (b.getType() == Material.IRON_DOOR_BLOCK)
+                        top.setData((byte) 9);
+                    break;
+                }
+                case 2: // Door is facing east
+                {
+                    Block b = top.getRelative(BlockFace.SOUTH);
+                    if (b.getType() == Material.IRON_DOOR_BLOCK)
+                        top.setData((byte) 9);
+                    break;
+                }
+                case 3: // Door is facing south
+                {
+                    Block b = top.getRelative(BlockFace.WEST);
+                    if (b.getType() == Material.IRON_DOOR_BLOCK)
+                        top.setData((byte) 9);
+                    break;
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void moveWoodenDoor(BlockState fromState, Block to) {
+        Block top = to.getRelative(BlockFace.UP, 1);
+        if (top.getRelative(BlockFace.DOWN).getType() != Material.WOODEN_DOOR) {
+            to.setType(Material.WOODEN_DOOR);
+            to.setData(fromState.getBlock().getData());
+    
+            top.setType(Material.WOODEN_DOOR);
+            top.setData((byte) 8);
+    
+            // Now check if it's a double-door or single-door
+            int directionFacing = to.getData();
+            switch (directionFacing)
+            {
+                case 0: // Door is facing west
+                {
+                    Block b = top.getRelative(BlockFace.NORTH);
+                    if (b.getType() == Material.WOODEN_DOOR)
+                        top.setData((byte) 9);
+                    break;
+                }
+                case 1: // Door is facing north
+                {
+                    Block b = top.getRelative(BlockFace.EAST);
+                    if (b.getType() == Material.WOODEN_DOOR)
+                        top.setData((byte) 9);
+                    break;
+                }
+                case 2: // Door is facing east
+                {
+                    Block b = top.getRelative(BlockFace.SOUTH);
+                    if (b.getType() == Material.WOODEN_DOOR)
+                        top.setData((byte) 9);
+                    break;
+                }
+                case 3: // Door is facing south
+                {
+                    Block b = top.getRelative(BlockFace.WEST);
+                    if (b.getType() == Material.WOODEN_DOOR)
+                        top.setData((byte) 9);
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean moveSolidBlockDown(BlockState fromState, Block to, StructureBlock current, BlockState from, boolean removeOldBlock) {
+        switch (from.getType()) {
+            case COMMAND: {
+                moveCommandBlock(fromState, to);
+                break;
+            }
+            case MOB_SPAWNER: {
+                moveCreatureSpawner(fromState, to);
+                break;
+            }
+            case REDSTONE_TORCH_ON: {
+                //Set it to air to make it get forcefully placed back and trigger redstone
+                to.setType(Material.AIR);
+                break;
+            }
+            case CHEST:
+            case TRAPPED_CHEST: {
+                removeOldBlock = moveChest(fromState, to, current, from);
+                break;
+            }
+            case BED_BLOCK: {
+                removeOldBlock = false; //we have a special processing for the bed
+                moveBed(fromState, to, from);
+                break;
+            }
+            case FURNACE:
+            case BURNING_FURNACE: {
+                moveFurnace(fromState, to);
+                break;
+            }
+            case HOPPER: {
+                moveHopper(fromState, to);
+                break;
+            }
+            case DROPPER: {
+                moveDropper(fromState, to);
+                break;
+            }
+            case BEACON: {
+                moveBeacon(fromState, to);
+                break;
+            }
+            case DISPENSER: {
+                moveDispenser(fromState, to);
+                break;
+            }
+            case JUKEBOX: {
+                moveJukebox(fromState, to);
+                break;
+            }
+            case NOTE_BLOCK: {
+                NoteBlock fromNoteBlock = (NoteBlock) fromState;
+                NoteBlock toNoteBlock = (NoteBlock) to.getState();
+                toNoteBlock.setNote(fromNoteBlock.getNote());
+                break;
+            }
+            case PISTON_BASE:
+            case PISTON_STICKY_BASE: {
+                movePiston(fromState, to);
+                break;
+            }
+            default:
+                break;
+        }
+        return removeOldBlock;
     }
 
     private void moveCreatureSpawner(BlockState fromState, Block to) {

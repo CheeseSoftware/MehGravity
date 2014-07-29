@@ -1,8 +1,8 @@
-# default config.yml
-#
+# MehGravity configuration
+
 blocklimit: 8192
-# BlockLimit: The max amount of blocks the plugin should search until- 
-# it thinks it's part of the world. 2000 default, don't go too high!(> 20000)
+# BlockLimit: The max amount of blocks the plugin should search until it thinks it's part of the world. 
+# Higher number can cause lag, lower number will ignore largest floating structures.
 
 gravityWorlds:
   - AllWorlds
@@ -13,26 +13,28 @@ gravityWorlds:
 #  - WorldName2
 #  - OtherWorldsJustContinueLikeThis
 
+# List of supported block names (case-sensitive): http://jd.bukkit.org/rb/apidocs/org/bukkit/Material.html
+
 staticBlocks:
    - BEDROCK
-#staticBlocks:	(Block materials that won't fall down, any structure connected to these won't fall) (CAPS needed)
+#staticBlocks:	(Block materials that won't fall down, any structure connected to these won't fall)
 #  - BEDROCK
 #  - SPONGE
 # And so on..
 
 nonStickyBlocks:
    - BEDROCK
-#nonStickyBlocks:	(Block materials that won't stick to any other blocks, just blocks of the same material) (CAPS needed)
+#nonStickyBlocks:	(Block materials that won't stick to any other blocks, just blocks of the same material)
 #  - BEDROCK
 #  - SPONGE
 # And so on..
 
 nonStickyBlocksAgainstEachother:
    - COAL_BLOCK-REDSTONE_BLOCK
-#nonStickyBlocksAgainstEachother:	(Block materials that won't stick to specified materials) (CAPS needed)
+#nonStickyBlocksAgainstEachother:	(Block materials that won't stick to specified materials)
 #  - BEDROCK-COAL_BLOCK
 #  - SPONGE-COBBLESTONE
 # And so on..
 
 useMetrics: true
-#Used to disable metrics
+#Should metrics be used?
