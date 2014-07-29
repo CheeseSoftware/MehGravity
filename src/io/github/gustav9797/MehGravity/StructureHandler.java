@@ -10,8 +10,8 @@ import org.bukkit.block.Block;
 
 public class StructureHandler
 {
-	HashMap<Integer, Structure> structures;
-	MehGravity plugin;
+	HashMap<Integer, Structure>    structures;
+	MehGravity                     plugin;
 
 	public StructureHandler(MehGravity plugin)
 	{
@@ -20,30 +20,30 @@ public class StructureHandler
 		plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new UpdateStructures(plugin, this), 1, 1);
 	}
 
-	public int GetFreeStructureId()
+	public int getFreeStructureId()
 	{
 		return structures.size();
 	}
 
-	public Structure CreateStructure(Block startBlock)
+	public Structure createStructure(Block startBlock)
 	{
-		if(!MehGravity.isWorldAffected(startBlock.getWorld().getName())) {
+		if (!MehGravity.isWorldAffected(startBlock.getWorld().getName())) {
 			return null;
 		}
 		
-		Location startLocation;
-		Structure structure;
-		Stack<Location> blocksToCheck = new Stack<Location>();
-		World world = startBlock.getWorld();
+		Location          startLocation;
+		Structure         structure;
+		Stack<Location>   blocksToCheck = new Stack<Location>();
+		World             world = startBlock.getWorld();
 		
 		startLocation = new Location( startBlock.getX() , startBlock.getY() , startBlock.getZ() );
-		structure = new Structure( GetFreeStructureId() , startBlock.getWorld() );
+		structure = new Structure( getFreeStructureId() , startBlock.getWorld() );
 		blocksToCheck.add(startLocation);
 		
 		while (!blocksToCheck.isEmpty())
 		{
 			Location location;
-			Block block;
+			Block    block;
 			Material material;
 			
 			if (structure.totalBlocks > MehGravity.blockLimit) { return null; }
@@ -57,16 +57,16 @@ public class StructureHandler
 			
 			if (material == Material.BEDROCK) { return null; }
 			
-			if(Structure.isMaterialWeak(material)) { continue; }
+			if (Structure.isMaterialWeak(material)) { continue; }
 
-			//gravel and sand has to be tretated as air because:
+			//gravel and sand has to be treated as air because:
 			//	if the plugin and vanilla server tries to move them, they get duplicated
 			//	they should never stick to other blocks next to them
-			if (material == Material.AIR || material == Material.GRAVEL || material == Material.SAND || structure.HasBlock(location)) {
+			if (material == Material.AIR || material == Material.GRAVEL || material == Material.SAND || structure.hasBlock(location)) {
 				continue;
 			}
 			
-			structure.AddBlock( block.getState() , new Location(location.getX(),location.getY(),location.getZ()) );
+			structure.addBlock( block.getState() , new Location(location.getX(),location.getY(),location.getZ()) );
 			
 			structure.totalBlocks++;
 			
@@ -81,7 +81,7 @@ public class StructureHandler
 		return structure;
 	}
 
-	public void AddStructure(Structure structure)
+	public void addStructure(Structure structure)
 	{
 		if (!structures.containsKey(structure.id)) {
 			structure.moveDate = new Date();
@@ -89,7 +89,7 @@ public class StructureHandler
 		}
 	}
 
-	public void RemoveStructure(int id)
+	public void removeStructure(int id)
 	{
 		if (structures.containsKey(id))
 			structures.remove(id);

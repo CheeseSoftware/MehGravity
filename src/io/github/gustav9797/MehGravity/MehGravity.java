@@ -37,9 +37,9 @@ public final class MehGravity extends JavaPlugin implements Listener
 	public static List<String> gravityWorlds;
 	public StructureHandler structureHandler;
 
-	private File configFile    = null;
-	private boolean useMetrics = false;
-	private Metrics metrics;
+	private File       configFile    = null;
+	private boolean    useMetrics = false;
+	private Metrics    metrics;
 
 	public void onEnable()
 	{
@@ -60,7 +60,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 			}
 			this.saveDefaultConfig();
 		}
-		this.Load();
+		this.load();
 
 		if (this.useMetrics)
 		{
@@ -98,7 +98,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 		getLogger().info("MehGravity disabled.");
 	}
 
-	public void Load()
+	public void load()
 	{
 		YamlConfiguration config = new YamlConfiguration();
 		try
@@ -168,7 +168,7 @@ public final class MehGravity extends JavaPlugin implements Listener
         }
     }
 
-    public void Save()
+    public void save()
 	{
 		YamlConfiguration config = new YamlConfiguration();
 		try
@@ -218,7 +218,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 			saveResource("config.yml", false);
 	}
 
-	public boolean HasPerms(Player player)
+	public boolean hasPerms(Player player)
 	{
 	    //Permission is not set OR it is set, but this player doesn't have it 
 		if (    !player.isPermissionSet("mehgravity.nocheck") 
@@ -241,16 +241,16 @@ public final class MehGravity extends JavaPlugin implements Listener
 		return false;
 	}
 
-	public void CheckAround(Block block, int delay)
+	public void checkAround(Block block, int delay)
 	{
 		new GravityCheckAroundLater(this, block).runTaskLater(this, delay);
 	}
 
-	public void Check(Block block)
+	public void check(Block block)
 	{
-		Structure structure = structureHandler.CreateStructure(block);
+		Structure structure = structureHandler.createStructure(block);
 		if (structure != null)
-			structureHandler.AddStructure(structure);
+			structureHandler.addStructure(structure);
 	}
 	
 	@EventHandler
@@ -258,34 +258,34 @@ public final class MehGravity extends JavaPlugin implements Listener
 	{
 		for(Block block : event.blockList())
 		{
-			this.CheckAround(block, 0);
+			this.checkAround(block, 0);
 		}
 	}
 
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event)
 	{
-		if (HasPerms(event.getPlayer()))
-			CheckAround(event.getBlock(), 0);
+		if (hasPerms(event.getPlayer()))
+			checkAround(event.getBlock(), 0);
 	}
 
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event)
 	{
-		if (HasPerms(event.getPlayer()))
-			Check(event.getBlockPlaced());
+		if (hasPerms(event.getPlayer()))
+			check(event.getBlockPlaced());
 	}
 
 	@EventHandler
 	public void onBlockBurn(BlockBurnEvent event)
 	{
-		CheckAround(event.getBlock(), 0);
+		checkAround(event.getBlock(), 0);
 	}
 
 	@EventHandler
 	public void onLeavesDecay(LeavesDecayEvent event)
 	{
-		CheckAround(event.getBlock(), 0);
+		checkAround(event.getBlock(), 0);
 	}
 
 	@EventHandler
@@ -300,7 +300,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 		        base.getZ() + event.getDirection().getModZ()
 	        )
 		);
-		CheckAround(toCheck, 10);
+		checkAround(toCheck, 10);
 	}
 
 	@EventHandler
@@ -315,7 +315,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 	            base.getZ() + event.getDirection().getModZ()
             )
 		);
-		CheckAround(toCheck, 10);
+		checkAround(toCheck, 10);
 	}
 
 	@EventHandler

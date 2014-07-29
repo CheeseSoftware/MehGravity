@@ -20,9 +20,9 @@ class GravityCheckLater extends BukkitRunnable
 	{
 		if (startBlock.getType() != Material.AIR)
 		{
-			Structure structure = plugin.structureHandler.CreateStructure(startBlock);
+			Structure structure = plugin.structureHandler.createStructure(startBlock);
 			if (structure != null)
-				plugin.structureHandler.AddStructure(structure);
+				plugin.structureHandler.addStructure(structure);
 		}
 	}
 }

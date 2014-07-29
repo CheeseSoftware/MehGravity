@@ -16,7 +16,7 @@ class UpdateStructures extends BukkitRunnable
 
 	public UpdateStructures(MehGravity plugin, StructureHandler structureHandler)
 	{
-		this.plugin = plugin;
+		this.plugin           = plugin;
 		this.structureHandler = structureHandler;
 	}
 
@@ -35,11 +35,11 @@ class UpdateStructures extends BukkitRunnable
 				{
 					World world = toCheck.world;
 					int blocksFall = toCheck.getMaximumFallDistance(world);
-					if (blocksFall >= 1 && toCheck.Size() > 0)
+					if (blocksFall >= 1 && toCheck.size() > 0)
 					{
-						toCheck.SortLevels();
-						toCheck.StoreNonSolidBlocks();
-						toCheck.MoveOneDown(world);
+						toCheck.sortLevels();
+						toCheck.storeNonSolidBlocks();
+						toCheck.moveOneDown(world);
 					}
 					else
 					{
@@ -47,7 +47,7 @@ class UpdateStructures extends BukkitRunnable
 						StructureBlock partOfStructure = toCheck.getExampleBlock();
 						if (partOfStructure != null)
 						{
-							Structure newStructure = structureHandler.CreateStructure(partOfStructure.originalBlock.getBlock());
+							Structure newStructure = structureHandler.createStructure(partOfStructure.originalBlock.getBlock());
 							i.remove();
 							if (newStructure != null && newStructure.getMaximumFallDistance(world) >= 1)
 								toAdd.add(newStructure);
@@ -61,7 +61,7 @@ class UpdateStructures extends BukkitRunnable
 		while (toAdd.size() > 0) {
 			Structure structure = toAdd.poll();
 			if (structure != null)
-				structureHandler.AddStructure(structure);
+				structureHandler.addStructure(structure);
 		}
 		toAdd.clear();
 	}

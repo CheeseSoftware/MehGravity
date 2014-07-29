@@ -37,16 +37,26 @@ import org.bukkit.material.TrapDoor;
 
 public class Structure
 {
-    public int id;
-    public World world;
-    public int totalBlocks;
-    public int yMin = Integer.MAX_VALUE;
-    public int yMax = 0;
-    private HashMap<Location, StructureBlock> blocks;
-    private Queue<StructureBlock> sortedLevelBlocks;
-    private Queue<Location> sensitiveBlocks;
-    public Date moveDate;
+    public  int                                 id;
+    public  World                               world;
+    public  int                                 totalBlocks;
+    public  int                                 yMin = Integer.MAX_VALUE;
+    public  int                                 yMax = 0;
+    private HashMap<Location, StructureBlock>   blocks;
+    private Queue<StructureBlock>               sortedLevelBlocks;
+    private Queue<Location>                     sensitiveBlocks;
+    public  Date                                moveDate;
 
+    public Structure(int id, World world)
+    {
+        this.id = id;
+        totalBlocks = 0;
+        blocks = new HashMap<Location, StructureBlock>();
+        sortedLevelBlocks = new LinkedList<StructureBlock>();
+        sensitiveBlocks = new LinkedList<Location>();
+        this.world = world;
+    }
+    
     // Adjacent locations
     static Location[] adjacentBlocks = { 
         new Location(0, -1, 0), 
@@ -150,16 +160,6 @@ public class Structure
         return Structure.weakBlocks.contains(material) || material == Material.AIR;
     }
 
-    public Structure(int id, World world)
-    {
-        this.id = id;
-        totalBlocks = 0;
-        blocks = new HashMap<Location, StructureBlock>();
-        sortedLevelBlocks = new LinkedList<StructureBlock>();
-        sensitiveBlocks = new LinkedList<Location>();
-        this.world = world;
-    }
-
     public StructureBlock getExampleBlock()
     {
         Iterator<Entry<Location, StructureBlock>> i = blocks.entrySet().iterator();
@@ -170,14 +170,14 @@ public class Structure
         return null;
     }
 
-    public void AddBlock(BlockState blockState, Location location)
+    public void addBlock(BlockState blockState, Location location)
     {
         if (!blocks.containsKey(location)) {
             blocks.put(location, new StructureBlock(id, location, blockState));
         }
     }
 
-    public void SortLevels()
+    public void sortLevels()
     {
         sortedLevelBlocks = new LinkedList<StructureBlock>();
         Iterator<Entry<Location, StructureBlock>> i = blocks.entrySet().iterator();
@@ -204,12 +204,12 @@ public class Structure
         }
     }
 
-    public boolean HasBlock(Location location)
+    public boolean hasBlock(Location location)
     {
         return blocks.containsKey(location);
     }
 
-    public void StoreNonSolidBlocks()
+    public void storeNonSolidBlocks()
     {
         sensitiveBlocks = new LinkedList<Location>();
         Iterator<Entry<Location, StructureBlock>> i = blocks.entrySet().iterator();
@@ -242,7 +242,7 @@ public class Structure
         }
     }
 
-    public int Size()
+    public int size()
     {
         return blocks.size();
     }
@@ -329,7 +329,7 @@ public class Structure
     }
 
     @SuppressWarnings("deprecation")
-    public void MoveOneDown(World world)
+    public void moveOneDown(World world)
     {
         // Move solid blocks down
         Iterator<StructureBlock> i = sortedLevelBlocks.iterator();
@@ -359,7 +359,7 @@ public class Structure
             }
         }
         // Place all non-solid blocks back
-        MoveNonSolidBlocksOneDown(i);
+        moveNonSolidBlocksOneDown(i);
         // Now move down location for each block in blocks
         updateLocationForMovedBlocks();
     }
@@ -389,13 +389,13 @@ public class Structure
     }
 
     @SuppressWarnings("deprecation")
-    private void MoveNonSolidBlocksOneDown(Iterator<StructureBlock> i) {
+    private void moveNonSolidBlocksOneDown(Iterator<StructureBlock> i) {
         i = sortedLevelBlocks.iterator();
         while (i.hasNext())
         {
             
-            StructureBlock current = i.next();
-            BlockState fromState = blocks.get(current.location).originalBlock;
+            StructureBlock  current     = i.next();
+            BlockState      fromState   = blocks.get(current.location).originalBlock;
             
             Block to = world.getBlockAt(current.location.getX(), current.location.getY() - 1, current.location.getZ());
             if (Structure.isMaterialWeak(to.getType())) { to.breakNaturally(); }
