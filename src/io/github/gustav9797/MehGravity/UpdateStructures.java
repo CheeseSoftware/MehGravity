@@ -39,7 +39,7 @@ class UpdateStructures extends BukkitRunnable
 					{
 						toCheck.sortLevels();
 						toCheck.storeNonSolidBlocks();
-						toCheck.moveOneDown(world);
+						toCheck.moveDown.moveOneDown(world);
 					}
 					else
 					{

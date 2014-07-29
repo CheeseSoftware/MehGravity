@@ -72,10 +72,7 @@ public final class MehGravity extends JavaPlugin implements Listener
 				versionGraph.addPlotter(new Metrics.Plotter(this.getDescription().getVersion())
 				{
 					@Override
-					public int getValue()
-					{
-						return 1;
-					}
+					public int getValue() { return 1; }
 
 				});
 
