@@ -11,12 +11,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 class UpdateStructures extends BukkitRunnable
 {
-    private MehGravity plugin;
+//    private MehGravity plugin;
     private StructureHandler structureHandler;
 
     public UpdateStructures(MehGravity plugin, StructureHandler structureHandler)
     {
-        this.plugin           = plugin;
+//        this.plugin           = plugin;
         this.structureHandler = structureHandler;
     }
 

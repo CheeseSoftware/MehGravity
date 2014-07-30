@@ -4,7 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.scheduler.BukkitRunnable;
 
-class GravityCheckLater extends BukkitRunnable
+class GravityCheckLater extends BukkitRunnable // NO_UCD (unused code)
 {
     Block      startBlock;
     MehGravity plugin;
