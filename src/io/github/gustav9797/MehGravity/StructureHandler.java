@@ -11,7 +11,7 @@ import org.bukkit.block.Block;
 class StructureHandler
 {
     HashMap<Integer, Structure>    structures;
-    MehGravity                     plugin;
+    private MehGravity                     plugin;
 
     public StructureHandler(MehGravity plugin)
     {

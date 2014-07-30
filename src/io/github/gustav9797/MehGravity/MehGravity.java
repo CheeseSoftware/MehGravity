@@ -31,10 +31,10 @@ import org.mcstats.Metrics.Graph;
 public final class MehGravity extends JavaPlugin implements Listener // NO_UCD (use default)
 {
     public static int                                  blockLimit = 8192;
-    public static HashSet<Material>                    staticBlocks;
-    public static HashSet<Material>                    nonStickyBlocks;
-    public static HashMap<Material, HashSet<Material>> nonStickyBlocksAgainstEachother;
-    public static List<String>                         gravityWorlds;
+    private static HashSet<Material>                    staticBlocks;
+    private static HashSet<Material>                    nonStickyBlocks;
+    private static HashMap<Material, HashSet<Material>> nonStickyBlocksAgainstEachother;
+    private static List<String>                         gravityWorlds;
     public StructureHandler                            structureHandler;
 
     private File       configFile  = null;

@@ -4,7 +4,7 @@ import org.bukkit.block.BlockState;
 
 class StructureBlock
 {
-    public int         partOfStructureId;
+    private int         partOfStructureId;
     public Location    location;
     public BlockState  originalBlock;
 

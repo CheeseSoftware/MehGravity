@@ -25,8 +25,8 @@ class Structure
     public  int                         id;
     public  World                       world;
     public  int                         totalBlocks;
-    public  int                         yMin = Integer.MAX_VALUE;
-    public  int                         yMax = 0;
+    private  int                         yMin = Integer.MAX_VALUE;
+    private  int                         yMax = 0;
     HashMap<Location, StructureBlock>   blocks;
     Queue<StructureBlock>               sortedLevelBlocks;
     Queue<Location>                     sensitiveBlocks;
@@ -55,7 +55,7 @@ class Structure
     };
 
     // Non-supporting materials
-    @SuppressWarnings("serial")
+    private @SuppressWarnings("serial")
     static final ArrayList<Material> weakBlocks = new ArrayList<Material>()
     {
         {
