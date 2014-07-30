@@ -181,7 +181,7 @@ public class Metrics
 	 * @param graph
 	 *            The name of the graph
 	 */
-	public void addGraph(final Graph graph)
+	public void addGraph(final Graph graph) // NO_UCD (unused code)
 	{
 		if (graph == null)
 		{
@@ -309,7 +309,7 @@ public class Metrics
 	 * 
 	 * @throws java.io.IOException
 	 */
-	public void enable() throws IOException
+	public void enable() throws IOException // NO_UCD (unused code)
 	{
 		// This has to be synchronized or it can collide with the check in the
 		// task.
@@ -337,7 +337,7 @@ public class Metrics
 	 * 
 	 * @throws java.io.IOException
 	 */
-	public void disable() throws IOException
+	public void disable() throws IOException // NO_UCD (unused code)
 	{
 		// This has to be synchronized or it can collide with the check in the
 		// task.
@@ -575,7 +575,7 @@ public class Metrics
 	 * @param input
 	 * @return
 	 */
-	public static byte[] gzip(String input)
+	public static byte[] gzip(String input) // NO_UCD (use private)
 	{
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		GZIPOutputStream gzos = null;
@@ -779,7 +779,7 @@ public class Metrics
 		 * @param plotter
 		 *            the plotter to remove from the graph
 		 */
-		public void removePlotter(final Plotter plotter)
+		public void removePlotter(final Plotter plotter) // NO_UCD (unused code)
 		{
 			plotters.remove(plotter);
 		}
@@ -816,7 +816,7 @@ public class Metrics
 		 * Called when the server owner decides to opt-out of BukkitMetrics
 		 * while the server is running.
 		 */
-		protected void onOptOut()
+		protected void onOptOut() // NO_UCD (use private)
 		{
 		}
 	}
@@ -876,7 +876,7 @@ public class Metrics
 		/**
 		 * Called after the website graphs have been updated
 		 */
-		public void reset()
+		public void reset() // NO_UCD (use private)
 		{
 		}
 

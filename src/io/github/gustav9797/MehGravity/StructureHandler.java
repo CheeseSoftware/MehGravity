@@ -89,9 +89,9 @@ class StructureHandler
         }
     }
 
-    public void removeStructure(int id)
-    {
-        if (structures.containsKey(id))
-            structures.remove(id);
-    }
+//    public void removeStructure(int id)
+//    {
+//        if (structures.containsKey(id))
+//            structures.remove(id);
+//    }
 }
