@@ -4,7 +4,8 @@ import org.bukkit.block.BlockState;
 
 class StructureBlock
 {
-    private int         partOfStructureId;
+    @SuppressWarnings("unused")
+    private int        partOfStructureId;
     public Location    location;
     public BlockState  originalBlock;
 

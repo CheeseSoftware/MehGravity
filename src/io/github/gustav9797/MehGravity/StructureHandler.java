@@ -11,11 +11,11 @@ import org.bukkit.block.Block;
 class StructureHandler
 {
     HashMap<Integer, Structure>    structures;
-    private MehGravity                     plugin;
+//    private MehGravity                     plugin;
 
-    public StructureHandler(MehGravity plugin)
+    StructureHandler(MehGravity plugin)
     {
-        this.plugin = plugin;
+//        this.plugin = plugin;
         structures = new HashMap<Integer, Structure>();
         plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new UpdateStructures(plugin, this), 1, 1);
     }
