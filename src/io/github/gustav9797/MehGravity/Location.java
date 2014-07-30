@@ -1,6 +1,6 @@
 package io.github.gustav9797.MehGravity;
 
-public class Location
+class Location
 {
     private int x_;
     private int y_;

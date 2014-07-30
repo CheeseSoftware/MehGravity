@@ -20,7 +20,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 
-public class Structure
+class Structure
 {
     public  int                         id;
     public  World                       world;

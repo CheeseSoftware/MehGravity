@@ -8,7 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-public class StructureHandler
+class StructureHandler
 {
     HashMap<Integer, Structure>    structures;
     MehGravity                     plugin;

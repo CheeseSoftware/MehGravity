@@ -1,6 +1,6 @@
 package io.github.gustav9797.MehGravity;
 
-public class ColumnCoord
+class ColumnCoord
 {
 
     public final int x;

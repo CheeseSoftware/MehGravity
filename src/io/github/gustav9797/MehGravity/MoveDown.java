@@ -32,7 +32,7 @@ import org.bukkit.material.PistonBaseMaterial;
 import org.bukkit.material.Torch;
 import org.bukkit.material.TrapDoor;
 
-public class MoveDown {
+class MoveDown {
     //Pointer to the class calling this class
     private Structure hostClass;    
     public MoveDown(Structure calledBy) {

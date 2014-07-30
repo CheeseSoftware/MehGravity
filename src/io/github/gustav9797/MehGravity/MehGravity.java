@@ -28,7 +28,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
 import org.mcstats.Metrics.Graph;
 
-public final class MehGravity extends JavaPlugin implements Listener
+public final class MehGravity extends JavaPlugin implements Listener // NO_UCD (use default)
 {
     public static int                                  blockLimit = 8192;
     public static HashSet<Material>                    staticBlocks;
