@@ -4,13 +4,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-
-//import me.tubelius.autoprice.AutoPrice;
-
-
 import org.bukkit.Material;
 import org.bukkit.World;
-//import org.bukkit.hostClass.world;
 import org.bukkit.block.Beacon;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -26,6 +21,12 @@ import org.bukkit.block.Jukebox;
 import org.bukkit.block.NoteBlock;
 import org.bukkit.block.Sign;
 import org.bukkit.block.Skull;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Hanging;
+import org.bukkit.entity.LeashHitch;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Painting;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.material.Bed;
 import org.bukkit.material.PistonBaseMaterial;
@@ -64,6 +65,7 @@ class MoveDown {
                 }
                 to.setType(from.getType());
                 to.setData(from.getBlock().getData());
+                moveBlockAttachables(from.getLocation());
                 removeOldBlock = moveSolidBlockDown(fromState, to, current, from, removeOldBlock);
                 if (removeOldBlock) { from.getBlock().setType(Material.AIR); }
                 i.remove();
@@ -73,6 +75,61 @@ class MoveDown {
         moveNonSolidBlocksOneDown(i);
         // Now move down location for each block in hostClass.blocks
         updateLocationForMovedBlocks();
+    }
+    
+    private void moveBlockAttachables(org.bukkit.Location location) {
+        for (Hanging hangingEntity : location.getWorld().getEntitiesByClass(Hanging.class)) {
+            //where is it attached to?
+            org.bukkit.Location attachedToLocation = null;
+            if (hangingEntity.getType() == EntityType.LEASH_HITCH) {
+                //leash is attached to the block at it's own location (we need to get block's location to get rid of decimals in coordinates)
+                attachedToLocation =  hangingEntity.getLocation().getBlock().getLocation();   
+            } else {
+                //it's attached to a block at getAttachedFace direction
+                attachedToLocation =  hangingEntity.getLocation().getBlock().getRelative(hangingEntity.getAttachedFace()).getLocation();
+            }
+            //is it attached to the block that is falling?
+            if (attachedToLocation.equals(location)) {
+                //Target location?
+                org.bukkit.Location targetLocation = hangingEntity.getLocation().subtract(0, 1, 0);
+                if (hangingEntity.getType() == EntityType.PAINTING) {
+                    //we may need to move one extra block depending on the size
+                    if ( ((Painting) hangingEntity).getArt().getBlockHeight() % 2 == 0) {
+                        targetLocation = targetLocation.subtract(0, 1, 0);  //down one more
+                    } 
+                    if ( ((Painting) hangingEntity).getArt().getBlockWidth() % 2 == 0) {
+                        if (hangingEntity.getFacing() == BlockFace.SOUTH) {
+                            targetLocation = targetLocation.subtract(1, 0, 0);  //x-1
+                        } else if (hangingEntity.getFacing() == BlockFace.WEST) {
+                            targetLocation = targetLocation.subtract(0, 0, 1);  //y-1
+                        }
+                    }
+                }
+                //Move it
+                moveHanging(hangingEntity,targetLocation);
+            }
+        }
+    }
+
+    
+    private void moveHanging(Hanging hangingEntity, org.bukkit.Location targetLocation) {
+        if (hangingEntity.getType() == EntityType.LEASH_HITCH) {    //Move leash
+            for(Entity entityNearLeash : hangingEntity.getNearbyEntities(15, 15, 15)) {
+                if (entityNearLeash instanceof LivingEntity) {
+                    LivingEntity livingEntity = (LivingEntity) entityNearLeash;
+                    if (livingEntity.isLeashed() && livingEntity.getLeashHolder().equals(hangingEntity)) {
+                        //add a new leash
+                        Entity newLeashHitch = targetLocation.getWorld().spawn(targetLocation, LeashHitch.class);
+                        livingEntity.setLeashHolder(newLeashHitch);
+                    }
+                }
+            }                    
+            //Remove the old leash
+            hangingEntity.remove();
+        } else {    //Move painting or item frame
+            hangingEntity.teleport(targetLocation);
+            hangingEntity.setFacingDirection(hangingEntity.getFacing(), true);
+        }
     }
 
     private void updateLocationForMovedBlocks() {
@@ -102,9 +159,7 @@ class MoveDown {
     @SuppressWarnings("deprecation")
     private void moveNonSolidBlocksOneDown(Iterator<StructureBlock> i) {
         i = hostClass.sortedLevelBlocks.iterator();
-        while (i.hasNext())
-        {
-            
+        while (i.hasNext()) {   
             StructureBlock  current     = i.next();
             BlockState      fromState   = hostClass.blocks.get(current.location).originalBlock;
             
