@@ -10,14 +10,18 @@
 	<property name="target" value="1.7" />
 	<property name="source" value="1.7" />
 	<path id="MehGravity.classpath">
+		<pathelement location="bukkit.jar" />
+		<pathelement location="craftbukkit.jar" />
 		<pathelement location="bin" />
 		<pathelement location="H:/googleDrive/gitHub/MehGravity/bukkit-1.7.10-R0.1-20140710.000649-3.jar" />
 	</path>
 	<path id="run.New_configuration (2).classpath">
+		<pathelement location="bukkit.jar" />
 		<pathelement location="craftbukkit.jar" />
 		<pathelement location="minecraft_server.jar" />
 	</path>
 	<path id="run.New_configuration.classpath">
+		<pathelement location="bukkit.jar" />
 		<pathelement location="craftbukkit.jar" />
 		<pathelement location="minecraft_server.jar" />
 	</path>
