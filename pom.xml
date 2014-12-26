@@ -32,7 +32,7 @@
 		<repository>
 			<id>spigotmc-repo</id>
 			<name>SpigotMC Repository</name>
-			<url>https://hub.spigotmc.org/nexus</url>
+			<url>https://hub.spigotmc.org/nexus/content/groups/public</url>
 		</repository>
 		<repository>
 			<id>md_5-repo</id>
