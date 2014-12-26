@@ -395,8 +395,7 @@ public class Metrics
 		String pluginVersion = description.getVersion();
 		String serverVersion = Bukkit.getVersion();
 		//int playersOnline = Bukkit.getServer().getOnlinePlayers().length;
-		@SuppressWarnings("deprecation")
-		int playersOnline = Bukkit.getServer().getOnlinePlayers().length;
+		int playersOnline = Bukkit.getServer().getOnlinePlayers().size();
 
 		// END server software specific section -- all code below does not use
 		// any code outside of this class / Java

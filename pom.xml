@@ -59,6 +59,19 @@
 			<name>Comphenix Repository</name>
 			<url>http://repo.comphenix.net/content/groups/public</url>
 		</repository>
+		<repository>
+			<id>spigotmc-repo</id>
+			<name>SpigotMC Repository</name>
+			<url>https://hub.spigotmc.org/nexus</url>
+		</repository>
 	</repositories>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.spigotmc</groupId>
+			<artifactId>spigot-api</artifactId>
+			<version>1.8-R0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
 
 </project>
