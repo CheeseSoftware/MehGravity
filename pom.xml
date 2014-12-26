@@ -30,9 +30,8 @@
 
 	<repositories>
 		<repository>
-			<id>spigotmc-repo</id>
-			<name>SpigotMC Repository</name>
-			<url>https://hub.spigotmc.org/nexus/content/groups/public</url>
+			<id>spigot-repo</id>
+			<url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
 		</repository>
 		<repository>
 			<id>md_5-repo</id>
@@ -68,9 +67,14 @@
 	
 	<dependencies>
 		<dependency>
-  			<groupId>org.spigotmc</groupId>
-  			<artifactId>spigot-api</artifactId>
-  			<version>1.8-R0.1-SNAPSHOT</version>
+          	<groupId>org.spigotmc</groupId>
+          	<artifactId>spigot-api</artifactId>
+          	<version>1.8-R0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+            <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
+            <version>1.8-R0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
