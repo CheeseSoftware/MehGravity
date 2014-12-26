@@ -1,4 +1,4 @@
-package io.github.gustav9797.MehGravity;
+package main.java.io.github.gustav9797.MehGravity;
 
 import org.bukkit.block.BlockState;
 

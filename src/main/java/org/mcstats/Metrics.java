@@ -25,7 +25,7 @@
  * authors and contributors and should not be interpreted as representing official policies,
  * either expressed or implied, of anybody else.
  */
-package org.mcstats;
+package main.java.org.mcstats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -395,6 +395,7 @@ public class Metrics
 		String pluginVersion = description.getVersion();
 		String serverVersion = Bukkit.getVersion();
 		//int playersOnline = Bukkit.getServer().getOnlinePlayers().length;
+		@SuppressWarnings("deprecation")
 		int playersOnline = Bukkit.getServer().getOnlinePlayers().length;
 
 		// END server software specific section -- all code below does not use

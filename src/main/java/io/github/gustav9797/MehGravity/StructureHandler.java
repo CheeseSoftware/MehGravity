@@ -1,4 +1,4 @@
-package io.github.gustav9797.MehGravity;
+package main.java.io.github.gustav9797.MehGravity;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -13,6 +13,7 @@ class StructureHandler
     HashMap<Integer, Structure>    structures;
 //    private MehGravity                     plugin;
 
+    @SuppressWarnings("deprecation")
     StructureHandler(MehGravity plugin)
     {
 //        this.plugin = plugin;

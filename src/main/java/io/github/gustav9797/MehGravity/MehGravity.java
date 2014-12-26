@@ -1,4 +1,4 @@
-package io.github.gustav9797.MehGravity;
+package main.java.io.github.gustav9797.MehGravity;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,8 +25,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.mcstats.Metrics;
-import org.mcstats.Metrics.Graph;
+import main.java.org.mcstats.Metrics;
+import main.java.org.mcstats.Metrics.Graph;
 
 public final class MehGravity extends JavaPlugin implements Listener // NO_UCD (use default)
 {

@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <jardesc>
-    <jar path="C:/Users/Gustav/Desktop/bukkitplugintest/plugins/MehGravity.jar"/>
+    <jar path="C:/Users/Gustav/Desktop/server/plugins/MehGravity.jar"/>
     <options buildIfNeeded="true" compress="true" descriptionLocation="/MehGravity/exportMehGravity.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
@@ -11,11 +11,13 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <file path="/MehGravity/plugin.yml"/>
-        <file path="/MehGravity/.project"/>
+        <file path="/MehGravity/pom.xml"/>
+        <folder path="/MehGravity/target"/>
         <javaElement handleIdentifier="=MehGravity/src"/>
-        <file path="/MehGravity/config.yml"/>
         <file path="/MehGravity/.classpath"/>
+        <file path="/MehGravity/build.xml"/>
+        <folder path="/MehGravity/bin"/>
+        <file path="/MehGravity/.project"/>
         <file path="/MehGravity/.gitignore"/>
     </selectedElements>
 </jardesc>
