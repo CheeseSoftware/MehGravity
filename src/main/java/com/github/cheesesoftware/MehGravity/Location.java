@@ -1,4 +1,4 @@
-package main.java.io.github.gustav9797.MehGravity;
+package com.github.cheesesoftware.MehGravity;
 
 class Location
 {
