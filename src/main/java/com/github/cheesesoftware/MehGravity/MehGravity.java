@@ -15,6 +15,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
@@ -242,7 +243,7 @@ public final class MehGravity extends JavaPlugin implements Listener // NO_UCD (
             structureHandler.addStructure(structure);
     }
     
-    @EventHandler
+    @EventHandler( ignoreCancelled = true, priority = EventPriority.HIGHEST )
     public void onEntityExplode(EntityExplodeEvent event)
     {
         for(Block block : event.blockList())
@@ -251,33 +252,33 @@ public final class MehGravity extends JavaPlugin implements Listener // NO_UCD (
         }
     }
 
-    @EventHandler
+    @EventHandler( ignoreCancelled = true, priority = EventPriority.HIGHEST )
     public void onBlockBreak(BlockBreakEvent event)
     {
         if (hasPerms(event.getPlayer()))
             checkAround(event.getBlock(), 0);
     }
 
-    @EventHandler
+    @EventHandler( ignoreCancelled = true, priority = EventPriority.HIGHEST )
     public void onBlockPlace(BlockPlaceEvent event)
     {
         if (hasPerms(event.getPlayer()))
             check(event.getBlockPlaced());
     }
 
-    @EventHandler
+    @EventHandler( ignoreCancelled = true, priority = EventPriority.HIGHEST )
     public void onBlockBurn(BlockBurnEvent event)
     {
         checkAround(event.getBlock(), 0);
     }
 
-    @EventHandler
+    @EventHandler( ignoreCancelled = true, priority = EventPriority.HIGHEST )
     public void onLeavesDecay(LeavesDecayEvent event)
     {
         checkAround(event.getBlock(), 0);
     }
 
-    @EventHandler
+    @EventHandler( ignoreCancelled = true, priority = EventPriority.HIGHEST )
     public void onBlockPistonExtend(BlockPistonExtendEvent event)
     {
         Block base = event.getBlock();
@@ -292,7 +293,7 @@ public final class MehGravity extends JavaPlugin implements Listener // NO_UCD (
         checkAround(toCheck, 10);
     }
 
-    @EventHandler
+    @EventHandler( ignoreCancelled = true, priority = EventPriority.HIGHEST )
     public void onBlockPistonRetract(BlockPistonRetractEvent event)
     {
         Block base = event.getBlock();
@@ -307,7 +308,7 @@ public final class MehGravity extends JavaPlugin implements Listener // NO_UCD (
         checkAround(toCheck, 10);
     }
 
-    @EventHandler
+    @EventHandler( ignoreCancelled = true, priority = EventPriority.HIGHEST )
     public void onBlockPhysics(BlockPhysicsEvent event)
     {
         // Prevent cactus duplication bug
